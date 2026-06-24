@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spiele</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: #0d0d2b;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      font-size: 48px;
+      font-weight: 900;
+      letter-spacing: 4px;
+      background: linear-gradient(135deg, #f90, #f0f, #0ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    p.sub {
+      color: #667;
+      font-size: 15px;
+      margin-bottom: 48px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    a.card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 40px 24px;
+      gap: 14px;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+
+    a.card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+    }
+
+    a.card.c1 { border-color: rgba(51,170,255,0.3); }
+    a.card.c1:hover { box-shadow: 0 16px 40px rgba(51,170,255,0.2); border-color: #33aaff; }
+
+    a.card.c2 { border-color: rgba(0,255,255,0.3); }
+    a.card.c2:hover { box-shadow: 0 16px 40px rgba(0,255,255,0.2); border-color: #0ff; }
+
+    a.card.c3 { border-color: rgba(255,100,50,0.3); }
+    a.card.c3:hover { box-shadow: 0 16px 40px rgba(255,100,50,0.2); border-color: #f64; }
+
+    .icon { font-size: 52px; }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #fff;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: #778;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+    .c1 .badge { background: rgba(51,170,255,0.2); color: #33aaff; }
+    .c2 .badge { background: rgba(0,255,255,0.2); color: #0ff; }
+    .c3 .badge { background: rgba(255,100,50,0.2); color: #f64; }
+  </style>
+</head>
+<body>
+  <h1>SPIELESAMMLUNG</h1>
+  <p class="sub">Wähle ein Spiel aus</p>
+
+  <div class="grid">
+    <a class="card c1" href="/spiel.html">
+      <div class="icon">🧍</div>
+      <div class="card-title">3D ABENTEUER</div>
+      <div class="card-desc">Steuere eine Figur durch eine 3D-Welt.<br>Vorwärts, zurück, springen und Kamera drehen.</div>
+      <div class="badge">WASD + Maus</div>
+    </a>
+
+    <a class="card c2" href="/neon-ball.html">
+      <div class="icon">🔮</div>
+      <div class="card-title">NEON BALL</div>
+      <div class="card-desc">Rolle einen leuchtenden Ball über schwebende Plattformen und sammle alle Orbs!</div>
+      <div class="badge">3 LEVEL</div>
+    </a>
+
+    <a class="card c3" href="/block-hopper.html">
+      <div class="icon">🟧</div>
+      <div class="card-title">BLOCK HOPPER</div>
+      <div class="card-desc">Spring von Block zu Block! Die Blöcke werden immer kleiner und weiter weg.</div>
+      <div class="badge">ENDLOS</div>
+    </a>
+  </div>
+</body>
+</html>
