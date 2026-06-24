@@ -135,8 +135,8 @@
   position:fixed;inset:0;display:none;flex-direction:column;
   align-items:center;justify-content:center;
   background:rgba(0,0,0,0.88);z-index:25;">
-  <div style="font-size:18px;letter-spacing:6px;color:#ffcc00;text-shadow:0 0 20px #ffcc00">ZIEL ERREICHT!</div>
-  <div id="win-level" style="font-size:72px;font-weight:900;color:#fff;text-shadow:0 0 40px #aa66ff;margin:8px 0;letter-spacing:4px"></div>
+  <div id="win-reached" style="font-size:16px;letter-spacing:6px;color:#ffcc00;text-shadow:0 0 20px #ffcc00">ZIEL ERREICHT!</div>
+  <div id="win-level" style="font-size:64px;font-weight:900;color:#fff;text-shadow:0 0 40px #aa66ff;margin:8px 0;letter-spacing:4px"></div>
   <div id="win-sub" style="color:#445;font-size:13px;letter-spacing:2px"></div>
   <button id="nextBtn" style="
     margin-top:32px;padding:14px 56px;font-size:18px;font-weight:700;letter-spacing:3px;
@@ -194,16 +194,37 @@ function burst(x, y, count, hue, spread = 100) {
   }
 }
 
-// ── Level config ───────────────────────────────────────────────────────────
-const LEVELS = [
-  { dist: 1400, diff: 0.0,  name: 'LEVEL 1', hue: 210 },
-  { dist: 2200, diff: 0.3,  name: 'LEVEL 2', hue: 270 },
-  { dist: 3200, diff: 0.55, name: 'LEVEL 3', hue: 340 },
-  { dist: 4400, diff: 0.75, name: 'LEVEL 4', hue: 30  },
-  { dist: 6000, diff: 0.95, name: 'LEVEL 5', hue: 160 },
-];
+// ── Level config (100 Levels) ──────────────────────────────────────────────
+const TOTAL_LEVELS = 100;
+
+function getLevelConfig(n) {
+  const num = n + 1;
+  let category, diff, hue, catColor;
+
+  if (n < 20) {
+    category = 'EINFACH';      hue = 210; catColor = '#44aaff';
+    diff = 0.04 + (n / 19) * 0.14;          // 0.04 → 0.18
+  } else if (n < 40) {
+    category = 'MITTEL';       hue = 160; catColor = '#44ee88';
+    diff = 0.20 + ((n-20) / 19) * 0.20;     // 0.20 → 0.40
+  } else if (n < 60) {
+    category = 'SCHWERER';     hue = 270; catColor = '#aa66ff';
+    diff = 0.42 + ((n-40) / 19) * 0.20;     // 0.42 → 0.62
+  } else if (n < 80) {
+    category = 'HART';         hue = 30;  catColor = '#ff8833';
+    diff = 0.64 + ((n-60) / 19) * 0.20;     // 0.64 → 0.84
+  } else {
+    category = 'SEHR SCHWER';  hue = 340; catColor = '#ff3366';
+    diff = 0.86 + ((n-80) / 19) * 0.14;     // 0.86 → 1.00
+  }
+
+  // Distance: 900px (level 1) → 7000px (level 100)
+  const dist = Math.round(900 + (n / 99) * 6100);
+  return { dist, diff, name: `LEVEL ${num}`, category, hue, catColor };
+}
+
 let currentLevel = 0;
-let goal = null;   // { x, y, w } – goal platform info
+let goal = null;
 
 // ── Platform colors ────────────────────────────────────────────────────────
 const PLAT_HUES = [210, 270, 340, 160, 30, 190];
@@ -230,7 +251,7 @@ function initPlatforms() {
   platIdx = 0;
   goal = null;
 
-  const lvl  = LEVELS[currentLevel];
+  const lvl  = getLevelConfig(currentLevel);
   const diff = lvl.diff;
   const goalX = lvl.dist;
 
@@ -306,27 +327,27 @@ function loadLevel() {
 }
 
 function updateLevelHUD() {
-  const lvl = LEVELS[currentLevel];
+  const lvl = getLevelConfig(currentLevel);
   const goalX = lvl.dist;
   const progress = Math.min(1, Math.max(0, (p.x - 60) / (goalX - 60)));
-  document.getElementById('level-num').textContent  = lvl.name;
+  document.getElementById('level-num').textContent  = `${lvl.name}  ·  ${lvl.category}`;
   document.getElementById('level-fill').style.width = (progress * 100) + '%';
+  document.getElementById('level-fill').style.background =
+    `linear-gradient(90deg, ${lvl.catColor}88, ${lvl.catColor})`;
+  document.getElementById('level-fill').style.boxShadow = `0 0 8px ${lvl.catColor}`;
   const remaining = Math.max(0, Math.floor((goalX - p.x) / 5));
   document.getElementById('level-label').textContent = remaining > 0 ? `noch ${remaining}m` : 'fast da!';
+  document.getElementById('level-num').style.color = lvl.catColor;
 
-  // Goal arrow (show when goal is off-screen to the right)
   const arrow = document.getElementById('goal-arrow');
-  if (goal && goal.x - camX > canvas.width + 20) {
-    arrow.style.display = 'flex';
-  } else {
-    arrow.style.display = 'none';
-  }
+  arrow.style.display = (goal && goal.x - camX > canvas.width + 20) ? 'flex' : 'none';
 }
 
 document.getElementById('startBtn').addEventListener('click', () => { currentLevel = 0; loadLevel(); });
 
 document.getElementById('nextBtn').addEventListener('click', () => {
-  currentLevel = Math.min(currentLevel + 1, LEVELS.length - 1);
+  if (currentLevel >= TOTAL_LEVELS - 1) { currentLevel = 0; }
+  else { currentLevel++; }
   loadLevel();
 });
 
@@ -334,12 +355,21 @@ document.getElementById('nextBtn').addEventListener('click', () => {
 function levelWon() {
   running = false;
   goalReached = true;
-  const isLast = currentLevel >= LEVELS.length - 1;
-  document.getElementById('win-level').textContent = LEVELS[currentLevel].name;
-  document.getElementById('win-sub').textContent   = isLast ? 'Alle Level geschafft! Du bist ein Parkour-Meister!' : 'Bereit für das nächste Level?';
-  document.getElementById('nextBtn').textContent   = isLast ? 'NOCHMAL' : 'WEITER →';
+  const lvl    = getLevelConfig(currentLevel);
+  const isLast = currentLevel >= TOTAL_LEVELS - 1;
+  document.getElementById('win-level').textContent = lvl.name;
+  document.getElementById('win-level').style.color = lvl.catColor;
+  document.getElementById('win-level').style.textShadow = `0 0 40px ${lvl.catColor}`;
+
+  const nextLvl = !isLast ? getLevelConfig(currentLevel + 1) : null;
+  document.getElementById('win-sub').textContent =
+    isLast
+      ? '🏆 Alle 100 Level geschafft! Du bist ein Parkour-Meister!'
+      : `Weiter zu ${nextLvl.name} – ${nextLvl.category}`;
+  document.getElementById('nextBtn').textContent = isLast ? 'VON VORNE' : 'WEITER →';
+  document.getElementById('nextBtn').style.borderColor = lvl.catColor + '88';
+  document.getElementById('nextBtn').style.color       = lvl.catColor;
   document.getElementById('win-overlay').style.display = 'flex';
-  if (isLast) document.getElementById('nextBtn').addEventListener('click', () => { currentLevel = 0; loadLevel(); }, { once: true });
   burst(goal.x + goal.w/2, goal.y, 40, 50, 200);
 }
 
