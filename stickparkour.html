@@ -223,7 +223,8 @@ function getLevelConfig(n) {
 
 let currentLevel = 0;
 let goal = null;
-let winTimer = 0;   // counts down after reaching goal → auto next level
+let winTimer   = 0;  // counts down after goal → auto next level
+let deathTimer = 0;  // counts down after fall → auto restart
 
 // ── Platform colors ────────────────────────────────────────────────────────
 const PLAT_HUES = [210, 270, 340, 160, 30, 190];
@@ -367,6 +368,7 @@ function loadLevel() {
   camX = 0; camY = 0;
   score = 0; maxX = p.x;
   goalReached = false;
+  deathTimer  = 0;
   particles.length = 0;
   jumpBuf = false;
   running = true;
@@ -393,10 +395,10 @@ function updateLevelHUD() {
 
 document.getElementById('startBtn').addEventListener('click', () => { currentLevel = 0; loadLevel(); });
 
-// Win! – auto-switch after 2.5s
+// Win! – auto-switch after 1.5s
 function levelWon() {
   goalReached = true;
-  winTimer    = 2.5;
+  winTimer    = 1.5;
   burst(goal.x + goal.w/2, goal.y, 50, 50, 220);
   burst(goal.x + goal.w/2, goal.y - 40, 30, 60, 160);
   // Freeze player
@@ -405,12 +407,9 @@ function levelWon() {
 
 // ── Game over ──────────────────────────────────────────────────────────────
 function gameOver() {
-  running = false;
   if (score > best) { best = score; localStorage.setItem('spkBest', best); }
-  document.getElementById('result').textContent    = score > 5 ? `${score}m weit gekommen!` : 'Gleich gefallen!';
-  document.getElementById('best-line').textContent = best > 0 ? `Bestleistung: ${best}m` : '';
-  document.getElementById('startBtn').textContent  = 'NOCHMAL';
-  document.getElementById('overlay').style.display = 'flex';
+  deathTimer = 1.5;
+  p.vx = 0; p.vy = 0;
 }
 
 function updateParticles(dt) {
@@ -430,6 +429,16 @@ function update(dt) {
   p.coyote    = Math.max(0, p.coyote - dt);
   p.landSquish = Math.max(0, p.landSquish - dt * 4);
   if (p.djumpSpin > 0) p.djumpSpin = Math.max(0, p.djumpSpin - dt * 9);
+
+  // ── Death countdown – auto restart ────────────────────────────────────
+  if (deathTimer > 0) {
+    deathTimer -= dt;
+    updateParticles(dt);
+    if (deathTimer <= 0) {
+      loadLevel();
+    }
+    return;
+  }
 
   // ── Win countdown – auto next level ────────────────────────────────────
   if (goalReached) {
@@ -873,10 +882,24 @@ function draw() {
   // Jump indicators
   if (!p.onGround && !goalReached) drawJumpIndicator();
 
+  // Death countdown text
+  if (deathTimer > 0) {
+    const alpha = Math.min(1, deathTimer * 2);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.textAlign   = 'center';
+    ctx.fillStyle   = '#ff3355';
+    ctx.shadowColor = '#ff3355';
+    ctx.shadowBlur  = 30;
+    ctx.font        = 'bold 52px Segoe UI';
+    ctx.fillText('GEFALLEN!', canvas.width / 2, canvas.height * 0.4);
+    ctx.restore();
+  }
+
   // Win celebration text
   if (goalReached) {
     const lvl  = getLevelConfig(currentLevel);
-    const prog = 1 - winTimer / 2.5;
+    const prog = 1 - winTimer / 1.5;
     const alpha = Math.min(1, prog * 3);
     const scale = 0.8 + Math.sin(prog * Math.PI) * 0.3;
     const cy    = canvas.height * 0.38;
