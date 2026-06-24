@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Neon Ball</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; overflow: hidden; font-family: 'Courier New', monospace; }
+    canvas { display: block; }
+
+    #hud {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      background: rgba(0,0,0,0.7);
+      border-bottom: 1px solid #0ff3;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .hud-item { color: #0ff; font-size: 18px; text-shadow: 0 0 8px #0ff; }
+    .hud-item span { color: #fff; font-size: 22px; font-weight: bold; }
+
+    #overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.85);
+      z-index: 20;
+    }
+    #overlay h1 {
+      font-size: 56px;
+      color: #0ff;
+      text-shadow: 0 0 20px #0ff, 0 0 40px #0ff;
+      margin-bottom: 10px;
+      letter-spacing: 4px;
+    }
+    #overlay p {
+      color: #aaa;
+      font-size: 16px;
+      margin: 4px 0;
+      text-shadow: 0 0 6px #0ff5;
+    }
+    #overlay .big { color: #ff0; font-size: 28px; text-shadow: 0 0 12px #ff0; margin: 16px 0 8px; }
+    #overlay button {
+      margin-top: 24px;
+      padding: 14px 40px;
+      font-size: 20px;
+      font-family: inherit;
+      background: transparent;
+      border: 2px solid #0ff;
+      color: #0ff;
+      cursor: pointer;
+      text-shadow: 0 0 8px #0ff;
+      box-shadow: 0 0 16px #0ff5;
+      letter-spacing: 2px;
+      transition: all 0.2s;
+    }
+    #overlay button:hover {
+      background: #0ff2;
+      box-shadow: 0 0 32px #0ff;
+    }
+
+    #controls {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #0ff6;
+      font-size: 13px;
+      text-align: center;
+      pointer-events: none;
+      text-shadow: 0 0 6px #0ff;
+    }
+  </style>
+</head>
+<body>
+
+<div id="hud">
+  <div class="hud-item">PUNKTE <span id="score">0</span></div>
+  <div class="hud-item">LEVEL <span id="level">1</span></div>
+  <div class="hud-item">LEBEN <span id="lives">❤❤❤</span></div>
+  <div class="hud-item">ZEIT <span id="timer">60</span></div>
+</div>
+
+<div id="overlay">
+  <h1>NEON BALL</h1>
+  <p>Sammle alle leuchtenden Orbs</p>
+  <p>Falle nicht ins Leere!</p>
+  <p class="big" id="overlay-msg"></p>
+  <button id="startBtn">SPIELEN</button>
+  <br>
+  <p style="margin-top:12px; color:#555">WASD / Pfeiltasten · Maus = Kamera</p>
+</div>
+
+<div id="controls">WASD · Leertaste = keine Funktion · Maus ziehen = Kamera drehen</div>
+
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js';
+
+// ── Renderer ────────────────────────────────────────────────────────────────
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(devicePixelRatio);
+renderer.shadowMap.enabled = true;
+document.body.appendChild(renderer.domElement);
+
+// ── Scene ───────────────────────────────────────────────────────────────────
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x020210);
+scene.fog = new THREE.FogExp2(0x020210, 0.04);
+
+// ── Camera ──────────────────────────────────────────────────────────────────
+const camera = new THREE.PerspectiveCamera(65, innerWidth / innerHeight, 0.1, 300);
+let camYaw = 0, camPitch = 0.55;
+const CAM_DIST = 10;
+
+// ── Lights ──────────────────────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0x112233, 1.5));
+const ptLight = new THREE.PointLight(0x00ffff, 2, 20);
+scene.add(ptLight);
+
+// neon strip lights
+[[0x00ffff, 0, 10],[0xff00ff, 10, 0],[0x00ff88, -10, -5]].forEach(([c,x,z]) => {
+  const l = new THREE.PointLight(c, 1.5, 30);
+  l.position.set(x, 3, z);
+  scene.add(l);
+});
+
+// ── Level data ──────────────────────────────────────────────────────────────
+const LEVELS = [
+  {
+    tiles: [
+      [0,0],[1,0],[2,0],[3,0],[4,0],
+      [0,1],[1,1],[2,1],[3,1],[4,1],
+      [0,2],[1,2],[2,2],[3,2],[4,2],
+      [0,3],[1,3],      [3,3],[4,3],
+      [0,4],[1,4],[2,4],[3,4],[4,4],
+    ],
+    orbs: [[1,0],[3,0],[0,2],[4,2],[2,4],[0,4],[4,4]],
+    start: [2, 2],
+  },
+  {
+    tiles: [
+      [0,0],[1,0],[2,0],
+                  [2,1],[3,1],[4,1],
+            [1,2],[2,2],[3,2],
+      [0,3],[1,3],      [3,3],[4,3],[5,3],
+            [1,4],[2,4],[3,4],[4,4],
+                        [3,5],[4,5],[5,5],
+    ],
+    orbs: [[0,0],[4,1],[0,3],[5,3],[3,5],[5,5],[2,2]],
+    start: [2, 0],
+  },
+  {
+    tiles: [
+      [2,0],
+      [1,1],[2,1],[3,1],
+      [0,2],[1,2],[2,2],[3,2],[4,2],
+      [1,3],[2,3],[3,3],
+      [0,4],      [2,4],      [4,4],
+      [0,5],[1,5],[2,5],[3,5],[4,5],
+    ],
+    orbs: [[2,0],[0,2],[4,2],[0,4],[4,4],[0,5],[4,5],[2,4]],
+    start: [2, 3],
+  },
+];
+
+// ── State ───────────────────────────────────────────────────────────────────
+let currentLevel = 0;
+let score = 0;
+let lives = 3;
+let timeLeft = 60;
+let gameRunning = false;
+let timerInterval = null;
+
+// Scene objects
+let tileGroup, orbGroup, ball, ballGlow;
+let tileSet = new Set();
+let orbMeshes = [];
+let orbPositions = [];
+
+const TILE_SIZE = 3;
+const TILE_H    = 0.4;
+
+function tileKey(tx, tz) { return `${tx},${tz}`; }
+
+function buildLevel(idx) {
+  // Clear previous
+  if (tileGroup) scene.remove(tileGroup);
+  if (orbGroup)  scene.remove(orbGroup);
+  tileGroup = new THREE.Group();
+  orbGroup  = new THREE.Group();
+  scene.add(tileGroup, orbGroup);
+  tileSet.clear();
+  orbMeshes = [];
+  orbPositions = [];
+
+  const lvl = LEVELS[idx];
+
+  // Tiles
+  const tileMat = new THREE.MeshStandardMaterial({
+    color: 0x001133,
+    emissive: 0x000820,
+    roughness: 0.3,
+    metalness: 0.8,
+  });
+
+  for (const [tx, tz] of lvl.tiles) {
+    const geo = new THREE.BoxGeometry(TILE_SIZE - 0.1, TILE_H, TILE_SIZE - 0.1);
+    const mesh = new THREE.Mesh(geo, tileMat);
+    mesh.position.set(tx * TILE_SIZE, 0, tz * TILE_SIZE);
+    mesh.receiveShadow = true;
+    tileGroup.add(mesh);
+    tileSet.add(tileKey(tx, tz));
+
+    // Edge glow lines
+    const edges = new THREE.EdgesGeometry(geo);
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x0066ff, transparent: true, opacity: 0.6 });
+    const lines = new THREE.LineSegments(edges, lineMat);
+    lines.position.copy(mesh.position);
+    tileGroup.add(lines);
+  }
+
+  // Orbs
+  for (const [tx, tz] of lvl.orbs) {
+    const geo = new THREE.IcosahedronGeometry(0.35, 2);
+    const mat = new THREE.MeshStandardMaterial({
+      color: 0xffee00,
+      emissive: 0xffaa00,
+      emissiveIntensity: 2,
+      roughness: 0.1,
+      metalness: 0.5,
+    });
+    const orb = new THREE.Mesh(geo, mat);
+    const wx = tx * TILE_SIZE;
+    const wz = tz * TILE_SIZE;
+    orb.position.set(wx, 1.2, wz);
+    orb.castShadow = true;
+    orbGroup.add(orb);
+    orbMeshes.push(orb);
+    orbPositions.push(new THREE.Vector3(wx, 1.2, wz));
+
+    // Orb point light
+    const ol = new THREE.PointLight(0xffaa00, 1, 5);
+    ol.position.copy(orb.position);
+    orbGroup.add(ol);
+  }
+
+  // Ball start
+  const [stx, stz] = lvl.start;
+  ballPos.set(stx * TILE_SIZE, 0.7, stz * TILE_SIZE);
+  ballVel.set(0, 0, 0);
+}
+
+// ── Ball setup ──────────────────────────────────────────────────────────────
+const ballPos = new THREE.Vector3();
+const ballVel = new THREE.Vector3();
+
+function createBall() {
+  if (ball) scene.remove(ball);
+  const geo = new THREE.SphereGeometry(0.55, 32, 32);
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0x00ffff,
+    emissive: 0x00aaff,
+    emissiveIntensity: 1.5,
+    roughness: 0.1,
+    metalness: 0.8,
+  });
+  ball = new THREE.Mesh(geo, mat);
+  ball.castShadow = true;
+  scene.add(ball);
+}
+createBall();
+
+// ── Input ────────────────────────────────────────────────────────────────────
+const keys = {};
+window.addEventListener('keydown', e => { keys[e.code] = true; e.preventDefault(); });
+window.addEventListener('keyup',   e => { keys[e.code] = false; });
+
+let isDrag = false, lastMX = 0, lastMY = 0;
+renderer.domElement.addEventListener('mousedown', e => { isDrag = true; lastMX = e.clientX; lastMY = e.clientY; });
+window.addEventListener('mouseup', () => { isDrag = false; });
+window.addEventListener('mousemove', e => {
+  if (!isDrag) return;
+  camYaw   -= (e.clientX - lastMX) * 0.006;
+  camPitch -= (e.clientY - lastMY) * 0.006;
+  camPitch = Math.max(0.1, Math.min(1.4, camPitch));
+  lastMX = e.clientX; lastMY = e.clientY;
+});
+
+// ── HUD ──────────────────────────────────────────────────────────────────────
+function updateHUD() {
+  document.getElementById('score').textContent = score;
+  document.getElementById('level').textContent = currentLevel + 1;
+  document.getElementById('lives').textContent = '❤'.repeat(lives);
+  document.getElementById('timer').textContent = timeLeft;
+}
+
+// ── Overlay ──────────────────────────────────────────────────────────────────
+const overlay = document.getElementById('overlay');
+const startBtn = document.getElementById('startBtn');
+const overlayMsg = document.getElementById('overlay-msg');
+const overlayTitle = overlay.querySelector('h1');
+
+function showOverlay(title, msg, btnText) {
+  overlayTitle.textContent = title;
+  overlayMsg.textContent = msg;
+  startBtn.textContent = btnText;
+  overlay.style.display = 'flex';
+}
+function hideOverlay() { overlay.style.display = 'none'; }
+
+startBtn.addEventListener('click', () => {
+  if (!gameRunning) startGame();
+});
+
+function startGame() {
+  score = 0; lives = 3; timeLeft = 60; currentLevel = 0;
+  gameRunning = true;
+  hideOverlay();
+  loadLevel(currentLevel);
+  startTimer();
+  updateHUD();
+}
+
+function loadLevel(idx) {
+  buildLevel(idx);
+  updateHUD();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    if (!gameRunning) return;
+    timeLeft--;
+    updateHUD();
+    if (timeLeft <= 0) die('Zeit abgelaufen!');
+  }, 1000);
+}
+
+function die(reason) {
+  lives--;
+  updateHUD();
+  if (lives <= 0) {
+    gameRunning = false;
+    clearInterval(timerInterval);
+    showOverlay('GAME OVER', `${reason}   Punkte: ${score}`, 'NOCHMAL');
+    return;
+  }
+  // Respawn
+  const lvl = LEVELS[currentLevel];
+  const [stx, stz] = lvl.start;
+  ballPos.set(stx * TILE_SIZE, 0.7, stz * TILE_SIZE);
+  ballVel.set(0, 0, 0);
+}
+
+function nextLevel() {
+  currentLevel++;
+  if (currentLevel >= LEVELS.length) {
+    gameRunning = false;
+    clearInterval(timerInterval);
+    showOverlay('GEWONNEN!', `Alle Level geschafft! Punkte: ${score}`, 'NOCHMAL');
+    return;
+  }
+  timeLeft = 60;
+  loadLevel(currentLevel);
+}
+
+// ── Physics ──────────────────────────────────────────────────────────────────
+const GRAVITY   = -22;
+const SPEED     = 9;
+const FRICTION  = 0.82;
+let onGround    = false;
+const clock     = new THREE.Clock();
+
+function getTileUnder(x, z) {
+  // Snap to nearest tile grid
+  const tx = Math.round(x / TILE_SIZE);
+  const tz = Math.round(z / TILE_SIZE);
+  // Also check adjacent
+  for (let dx = -1; dx <= 1; dx++) {
+    for (let dz = -1; dz <= 1; dz++) {
+      const key = tileKey(tx + dx, tz + dz);
+      if (tileSet.has(key)) {
+        const wx = (tx + dx) * TILE_SIZE;
+        const wz = (tz + dz) * TILE_SIZE;
+        const half = (TILE_SIZE - 0.1) / 2;
+        if (Math.abs(x - wx) < half && Math.abs(z - wz) < half) {
+          return TILE_H / 2; // top of tile = TILE_H/2 since centered at y=0
+        }
+      }
+    }
+  }
+  return null;
+}
+
+let orbSpin = 0;
+
+function tick() {
+  const dt = Math.min(clock.getDelta(), 0.05);
+  if (!gameRunning) { renderer.render(scene, camera); return; }
+
+  // Movement
+  const fwd = new THREE.Vector3(-Math.sin(camYaw), 0, -Math.cos(camYaw));
+  const rgt = new THREE.Vector3( Math.cos(camYaw), 0, -Math.sin(camYaw));
+  const accel = new THREE.Vector3();
+  if (keys['KeyW'] || keys['ArrowUp'])    accel.addScaledVector(fwd,  1);
+  if (keys['KeyS'] || keys['ArrowDown'])  accel.addScaledVector(fwd, -1);
+  if (keys['KeyA'] || keys['ArrowLeft'])  accel.addScaledVector(rgt, -1);
+  if (keys['KeyD'] || keys['ArrowRight']) accel.addScaledVector(rgt,  1);
+  accel.normalize().multiplyScalar(SPEED * 16);
+  ballVel.x += accel.x * dt;
+  ballVel.z += accel.z * dt;
+
+  // Friction
+  if (onGround) {
+    ballVel.x *= Math.pow(FRICTION, dt * 60);
+    ballVel.z *= Math.pow(FRICTION, dt * 60);
+  }
+
+  // Gravity
+  ballVel.y += GRAVITY * dt;
+
+  // Move
+  ballPos.addScaledVector(ballVel, dt);
+
+  // Ground check
+  const floor = getTileUnder(ballPos.x, ballPos.z);
+  if (floor !== null && ballPos.y <= floor + 0.55) {
+    ballPos.y = floor + 0.55;
+    ballVel.y = 0;
+    onGround = true;
+  } else {
+    onGround = false;
+  }
+
+  // Fell off?
+  if (ballPos.y < -6) {
+    die('Gefallen!');
+    return;
+  }
+
+  ball.position.copy(ballPos);
+
+  // Rolling rotation
+  ball.rotation.x += ballVel.z * dt * 0.6;
+  ball.rotation.z -= ballVel.x * dt * 0.6;
+
+  // Orb spin & collect
+  orbSpin += dt * 2;
+  for (let i = orbMeshes.length - 1; i >= 0; i--) {
+    const orb = orbMeshes[i];
+    orb.rotation.y = orbSpin;
+    orb.rotation.x = orbSpin * 0.7;
+    orb.position.y = orbPositions[i].y + Math.sin(orbSpin + i) * 0.15;
+
+    if (ballPos.distanceTo(orbPositions[i]) < 1.1) {
+      orbGroup.remove(orb);
+      // also remove the point light (next sibling)
+      orbMeshes.splice(i, 1);
+      orbPositions.splice(i, 1);
+      score += 100;
+      updateHUD();
+      if (orbMeshes.length === 0) {
+        score += timeLeft * 10;
+        updateHUD();
+        nextLevel();
+        return;
+      }
+    }
+  }
+
+  // Ball glow follows
+  ptLight.position.copy(ballPos);
+
+  // Camera
+  const cx = Math.cos(camPitch) * Math.sin(camYaw) * CAM_DIST;
+  const cy = Math.sin(camPitch) * CAM_DIST;
+  const cz = Math.cos(camPitch) * Math.cos(camYaw) * CAM_DIST;
+  const target = new THREE.Vector3(ballPos.x, ballPos.y + 0.5, ballPos.z);
+  camera.position.set(target.x + cx, target.y + cy, target.z + cz);
+  camera.lookAt(target);
+
+  // Stars background pulse
+  scene.fog.density = 0.035 + Math.sin(orbSpin * 0.3) * 0.005;
+
+  renderer.render(scene, camera);
+}
+
+// ── Stars ────────────────────────────────────────────────────────────────────
+{
+  const geo = new THREE.BufferGeometry();
+  const verts = [];
+  for (let i = 0; i < 800; i++) {
+    verts.push((Math.random()-0.5)*300, Math.random()*80+5, (Math.random()-0.5)*300);
+  }
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(verts, 3));
+  scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.25, transparent: true, opacity: 0.8 })));
+}
+
+// ── Loop ─────────────────────────────────────────────────────────────────────
+renderer.setAnimationLoop(tick);
+
+window.addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+showOverlay('NEON BALL', '', 'SPIELEN');
+</script>
+</body>
+</html>
