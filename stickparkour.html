@@ -131,19 +131,6 @@
   <button id="startBtn">SPIELEN</button>
 </div>
 
-<div id="win-overlay" style="
-  position:fixed;inset:0;display:none;flex-direction:column;
-  align-items:center;justify-content:center;
-  background:rgba(0,0,0,0.88);z-index:25;">
-  <div id="win-reached" style="font-size:16px;letter-spacing:6px;color:#ffcc00;text-shadow:0 0 20px #ffcc00">ZIEL ERREICHT!</div>
-  <div id="win-level" style="font-size:64px;font-weight:900;color:#fff;text-shadow:0 0 40px #aa66ff;margin:8px 0;letter-spacing:4px"></div>
-  <div id="win-sub" style="color:#445;font-size:13px;letter-spacing:2px"></div>
-  <button id="nextBtn" style="
-    margin-top:32px;padding:14px 56px;font-size:18px;font-weight:700;letter-spacing:3px;
-    border:2px solid #ffcc0066;border-radius:50px;
-    background:rgba(255,204,0,0.1);color:#ffcc00;cursor:pointer;
-    transition:all 0.2s;font-family:inherit;">WEITER →</button>
-</div>
 
 <script>
 const canvas = document.getElementById('c');
@@ -197,34 +184,46 @@ function burst(x, y, count, hue, spread = 100) {
 // ── Level config (100 Levels) ──────────────────────────────────────────────
 const TOTAL_LEVELS = 100;
 
+// Level types – cycle through every few levels for variety
+const LEVEL_TYPES = ['flat','climb','gap','moving','chaos'];
+
 function getLevelConfig(n) {
   const num = n + 1;
-  let category, diff, hue, catColor;
+  let category, diff, hue, catColor, sky1, sky2, buildCol;
 
   if (n < 20) {
-    category = 'EINFACH';      hue = 210; catColor = '#44aaff';
-    diff = 0.04 + (n / 19) * 0.14;          // 0.04 → 0.18
+    category = 'EINFACH';     hue = 210; catColor = '#44aaff';
+    sky1 = '#03040e'; sky2 = '#07081a'; buildCol = '#060614';
+    diff = 0.04 + (n / 19) * 0.14;
   } else if (n < 40) {
-    category = 'MITTEL';       hue = 160; catColor = '#44ee88';
-    diff = 0.20 + ((n-20) / 19) * 0.20;     // 0.20 → 0.40
+    category = 'MITTEL';      hue = 150; catColor = '#44ee88';
+    sky1 = '#030e06'; sky2 = '#071a0c'; buildCol = '#061408';
+    diff = 0.20 + ((n-20) / 19) * 0.20;
   } else if (n < 60) {
-    category = 'SCHWERER';     hue = 270; catColor = '#aa66ff';
-    diff = 0.42 + ((n-40) / 19) * 0.20;     // 0.42 → 0.62
+    category = 'SCHWERER';    hue = 270; catColor = '#aa66ff';
+    sky1 = '#08030e'; sky2 = '#12061a'; buildCol = '#0c0614';
+    diff = 0.42 + ((n-40) / 19) * 0.20;
   } else if (n < 80) {
-    category = 'HART';         hue = 30;  catColor = '#ff8833';
-    diff = 0.64 + ((n-60) / 19) * 0.20;     // 0.64 → 0.84
+    category = 'HART';        hue = 30;  catColor = '#ff8833';
+    sky1 = '#0e0600'; sky2 = '#1a0c00'; buildCol = '#140800';
+    diff = 0.64 + ((n-60) / 19) * 0.20;
   } else {
-    category = 'SEHR SCHWER';  hue = 340; catColor = '#ff3366';
-    diff = 0.86 + ((n-80) / 19) * 0.14;     // 0.86 → 1.00
+    category = 'SEHR SCHWER'; hue = 340; catColor = '#ff3366';
+    sky1 = '#0e0003'; sky2 = '#1a0006'; buildCol = '#140004';
+    diff = 0.86 + ((n-80) / 19) * 0.14;
   }
 
-  // Distance: 900px (level 1) → 7000px (level 100)
+  // Level type: cycles every 5 levels so nearby levels feel different
+  const type = LEVEL_TYPES[n % LEVEL_TYPES.length];
+
+  // Distance: 900px (L1) → 7000px (L100)
   const dist = Math.round(900 + (n / 99) * 6100);
-  return { dist, diff, name: `LEVEL ${num}`, category, hue, catColor };
+  return { dist, diff, type, name: `LEVEL ${num}`, category, hue, catColor, sky1, sky2, buildCol };
 }
 
 let currentLevel = 0;
 let goal = null;
+let winTimer = 0;   // counts down after reaching goal → auto next level
 
 // ── Platform colors ────────────────────────────────────────────────────────
 const PLAT_HUES = [210, 270, 340, 160, 30, 190];
@@ -233,17 +232,69 @@ const PLAT_HUES = [210, 270, 340, 160, 30, 190];
 const platforms = [];
 let platIdx = 0;
 
-function genPlatform(difficulty, lastPlat) {
+function genPlatform(lvl, lastPlat, i) {
   const lx = lastPlat.x + lastPlat.w;
   const ly = lastPlat.y;
-  const d  = Math.min(1, difficulty);
-  const gap = 110 + d * 130 + Math.random() * 80;
-  const dy  = (Math.random() - 0.48) * (50 + d * 120);
-  const w   = Math.max(55, 180 - d * 80 - Math.random() * 40);
+  const d  = Math.min(1, lvl.diff);
+  const t  = lvl.type;
+  const H  = canvas.height;
+
+  let gap, dy, w, moving = false, moveRange = 0, moveSpeed = 0;
+
+  if (t === 'flat') {
+    // Small gaps, tiny height difference
+    gap = 90  + d * 80  + Math.random() * 60;
+    dy  = (Math.random() - 0.5) * (30 + d * 60);
+    w   = Math.max(70,  200 - d * 70  - Math.random() * 30);
+
+  } else if (t === 'climb') {
+    // Platforms go UP more than down – player has to climb
+    gap = 100 + d * 90  + Math.random() * 50;
+    dy  = -(20 + Math.random() * (50 + d * 100));  // mostly upward
+    if (Math.random() < 0.3) dy = Math.abs(dy) * 0.5; // occasional descent
+    w   = Math.max(60,  170 - d * 60  - Math.random() * 40);
+
+  } else if (t === 'gap') {
+    // Large horizontal gaps – need double jumps
+    gap = 160 + d * 160 + Math.random() * 80;
+    dy  = (Math.random() - 0.5) * (40 + d * 80);
+    w   = Math.max(55,  160 - d * 70  - Math.random() * 40);
+
+  } else if (t === 'moving') {
+    // Platforms move up and down
+    gap = 120 + d * 110 + Math.random() * 60;
+    dy  = (Math.random() - 0.5) * (60 + d * 100);
+    w   = Math.max(60,  160 - d * 60  - Math.random() * 30);
+    if (i % 2 === 1 && d > 0.1) {  // every other platform moves
+      moving    = true;
+      moveRange = 30 + d * 60;
+      moveSpeed = 60 + d * 80;
+    }
+
+  } else { // 'chaos'
+    // Tiny platforms, huge gaps, fast movers
+    gap = 150 + d * 180 + Math.random() * 100;
+    dy  = (Math.random() - 0.5) * (80 + d * 150);
+    w   = Math.max(40,  120 - d * 70  - Math.random() * 30);
+    if (Math.random() < 0.6) {
+      moving    = true;
+      moveRange = 40 + d * 80;
+      moveSpeed = 80 + d * 120;
+    }
+  }
+
   const nx  = lx + gap;
-  const ny  = Math.max(canvas.height * 0.22, Math.min(canvas.height * 0.82, ly + dy));
+  const ny  = Math.max(H * 0.18, Math.min(H * 0.84, ly + dy));
   const hue = PLAT_HUES[platIdx++ % PLAT_HUES.length];
-  return { x: nx, y: ny, w, h: 18, hue };
+
+  const pl = { x: nx, y: ny, w, h: 18, hue, moving };
+  if (moving) {
+    pl.baseY     = ny;
+    pl.moveRange = moveRange;
+    pl.moveSpeed = moveSpeed;
+    pl.moveT     = Math.random() * Math.PI * 2; // offset so they don't all sync
+  }
+  return pl;
 }
 
 function initPlatforms() {
@@ -251,30 +302,28 @@ function initPlatforms() {
   platIdx = 0;
   goal = null;
 
-  const lvl  = getLevelConfig(currentLevel);
-  const diff = lvl.diff;
+  const lvl   = getLevelConfig(currentLevel);
   const goalX = lvl.dist;
 
-  // Starting platform
-  let last = { x: -100, y: canvas.height * 0.68, w: 320, h: 18, hue: 210 };
+  // Starting platform (always safe and wide)
+  let last = { x: -100, y: canvas.height * 0.68, w: 320, h: 18, hue: 210, moving: false };
   platforms.push(last);
 
-  // Generate until we pass the goal distance
+  let i = 0;
   while (last.x + last.w < goalX - 200) {
-    const pl = genPlatform(diff, last);
-    // Stop before overshooting goal
+    const pl = genPlatform(lvl, last, i++);
     if (pl.x > goalX - 100) break;
     platforms.push(pl);
     last = pl;
   }
 
-  // Goal platform – wide, centered near goalX
+  // Goal platform – always wide and reachable
   const goalPlat = {
     x: goalX,
-    y: Math.max(canvas.height * 0.3, Math.min(canvas.height * 0.72, last.y + (Math.random()-0.5)*80)),
-    w: 220, h: 18,
-    hue: 50,   // golden
-    isGoal: true,
+    y: Math.max(canvas.height * 0.28, Math.min(canvas.height * 0.72,
+        last.y + (Math.random()-0.5) * 60)),
+    w: 240, h: 18,
+    hue: 50, isGoal: true, moving: false,
   };
   platforms.push(goalPlat);
   goal = goalPlat;
@@ -322,7 +371,6 @@ function loadLevel() {
   jumpBuf = false;
   running = true;
   document.getElementById('overlay').style.display = 'none';
-  document.getElementById('win-overlay').style.display = 'none';
   updateLevelHUD();
 }
 
@@ -345,32 +393,14 @@ function updateLevelHUD() {
 
 document.getElementById('startBtn').addEventListener('click', () => { currentLevel = 0; loadLevel(); });
 
-document.getElementById('nextBtn').addEventListener('click', () => {
-  if (currentLevel >= TOTAL_LEVELS - 1) { currentLevel = 0; }
-  else { currentLevel++; }
-  loadLevel();
-});
-
-// Win!
+// Win! – auto-switch after 2.5s
 function levelWon() {
-  running = false;
   goalReached = true;
-  const lvl    = getLevelConfig(currentLevel);
-  const isLast = currentLevel >= TOTAL_LEVELS - 1;
-  document.getElementById('win-level').textContent = lvl.name;
-  document.getElementById('win-level').style.color = lvl.catColor;
-  document.getElementById('win-level').style.textShadow = `0 0 40px ${lvl.catColor}`;
-
-  const nextLvl = !isLast ? getLevelConfig(currentLevel + 1) : null;
-  document.getElementById('win-sub').textContent =
-    isLast
-      ? '🏆 Alle 100 Level geschafft! Du bist ein Parkour-Meister!'
-      : `Weiter zu ${nextLvl.name} – ${nextLvl.category}`;
-  document.getElementById('nextBtn').textContent = isLast ? 'VON VORNE' : 'WEITER →';
-  document.getElementById('nextBtn').style.borderColor = lvl.catColor + '88';
-  document.getElementById('nextBtn').style.color       = lvl.catColor;
-  document.getElementById('win-overlay').style.display = 'flex';
-  burst(goal.x + goal.w/2, goal.y, 40, 50, 200);
+  winTimer    = 2.5;
+  burst(goal.x + goal.w/2, goal.y, 50, 50, 220);
+  burst(goal.x + goal.w/2, goal.y - 40, 30, 60, 160);
+  // Freeze player
+  p.vx = 0; p.vy = 0;
 }
 
 // ── Game over ──────────────────────────────────────────────────────────────
@@ -383,12 +413,44 @@ function gameOver() {
   document.getElementById('overlay').style.display = 'flex';
 }
 
+function updateParticles(dt) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const pt = particles[i];
+    pt.life -= dt;
+    if (pt.life <= 0) { particles.splice(i, 1); continue; }
+    pt.x  += pt.vx * dt;
+    pt.y  += pt.vy * dt;
+    pt.vy += 600 * dt;
+  }
+}
+
 // ── Update ────────────────────────────────────────────────────────────────
 function update(dt) {
   p.animT    += dt;
   p.coyote    = Math.max(0, p.coyote - dt);
   p.landSquish = Math.max(0, p.landSquish - dt * 4);
   if (p.djumpSpin > 0) p.djumpSpin = Math.max(0, p.djumpSpin - dt * 9);
+
+  // ── Win countdown – auto next level ────────────────────────────────────
+  if (goalReached) {
+    winTimer -= dt;
+    flagWave += dt * 6;
+    // Keep pumping celebration particles
+    if (Math.random() < dt * 8 && goal)
+      burst(goal.x + goal.w/2 + (Math.random()-0.5)*40,
+            goal.y - Math.random()*30, 3, 50+Math.random()*60, 100);
+    if (winTimer <= 0) {
+      if (currentLevel >= TOTAL_LEVELS - 1) { currentLevel = 0; }
+      else { currentLevel++; }
+      loadLevel();
+    }
+    // Slowly slide player toward flag while celebrating
+    p.x += (goal.x + goal.w/2 - p.w/2 - p.x) * dt * 2;
+    p.state = 'idle';
+    updateLevelHUD();
+    updateParticles(dt);
+    return;
+  }
 
   // ── Horizontal movement ────────────────────────────────────────────────
   const left  = keys['ArrowLeft']  || keys['KeyA'];
@@ -424,6 +486,13 @@ function update(dt) {
   // ── Move ──────────────────────────────────────────────────────────────
   p.x += p.vx * dt;
   p.y += p.vy * dt;
+
+  // ── Move platforms ─────────────────────────────────────────────────────
+  for (const pl of platforms) {
+    if (!pl.moving) continue;
+    pl.moveT += dt;
+    pl.y = pl.baseY + Math.sin(pl.moveT * pl.moveSpeed * 0.05) * pl.moveRange;
+  }
 
   // ── Platform collision ─────────────────────────────────────────────────
   const wasOnGround = p.onGround;
@@ -486,14 +555,7 @@ function update(dt) {
   camY += (targetY - camY) * Math.min(1, dt * 5);
 
   // ── Particles ──────────────────────────────────────────────────────────
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const pt = particles[i];
-    pt.life -= dt;
-    if (pt.life <= 0) { particles.splice(i, 1); continue; }
-    pt.x  += pt.vx * dt;
-    pt.y  += pt.vy * dt;
-    pt.vy += 600 * dt;
-  }
+  updateParticles(dt);
 
   // ── Flag wave ──────────────────────────────────────────────────────────
   flagWave += dt * 3;
@@ -610,28 +672,28 @@ function seg(ctx, x1, y1, x2, y2) {
 
 // ── Draw background ────────────────────────────────────────────────────────
 function drawBg() {
-  const W = canvas.width, H = canvas.height;
+  const W   = canvas.width, H = canvas.height;
+  const lvl = getLevelConfig(currentLevel);
 
-  // Sky
+  // Sky gradient – changes per difficulty tier
   const sky = ctx.createLinearGradient(0, 0, 0, H);
-  sky.addColorStop(0, '#04040e');
-  sky.addColorStop(1, '#08081a');
+  sky.addColorStop(0, lvl.sky1);
+  sky.addColorStop(1, lvl.sky2);
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, W, H);
 
   // Stars (parallax 0.05)
-  ctx.fillStyle = '#ffffff';
   for (let i = 0; i < 80; i++) {
     const sx = ((i * 173 - camX * 0.05) % (W + 60) + W + 60) % (W + 60) - 30;
     const sy = (i * 97 + 10) % (H * 0.75);
-    const bright = 0.3 + Math.abs(Math.sin(i + p.animT * 0.4)) * 0.5;
-    ctx.globalAlpha = bright;
+    ctx.globalAlpha = 0.3 + Math.abs(Math.sin(i + p.animT * 0.4)) * 0.5;
+    ctx.fillStyle   = lvl.catColor;
     ctx.fillRect(sx, sy, 1.5, 1.5);
   }
   ctx.globalAlpha = 1;
 
   // Far buildings (parallax 0.15)
-  ctx.fillStyle = '#060614';
+  ctx.fillStyle = lvl.buildCol;
   const bOff = (camX * 0.15) % 180;
   for (let i = -1; i < Math.ceil(W / 180) + 1; i++) {
     const bx = i * 180 - bOff;
@@ -641,24 +703,38 @@ function drawBg() {
   }
 
   // Mid buildings (parallax 0.3)
-  ctx.fillStyle = '#0a0a1e';
+  const midCol = lvl.buildCol.replace('#', '');
+  const mc = parseInt(midCol, 16);
+  const mr = Math.min(255, ((mc>>16)&0xff) + 6);
+  const mg = Math.min(255, ((mc>>8)&0xff)  + 6);
+  const mb = Math.min(255, (mc&0xff)        + 10);
+  ctx.fillStyle = `rgb(${mr},${mg},${mb})`;
   const mOff = (camX * 0.3) % 120;
   for (let i = -1; i < Math.ceil(W / 120) + 1; i++) {
     const bx = i * 120 - mOff;
     const bh = 40 + Math.abs(Math.sin(i * 2.1)) * 80;
     const bw = 50 + Math.abs(Math.sin(i * 3.1)) * 40;
     ctx.fillRect(bx, H - bh, bw, bh);
-    // Windows
+    // Windows (tinted with category color)
     for (let wy = H - bh + 8; wy < H - 6; wy += 16) {
       for (let wx = bx + 6; wx < bx + bw - 6; wx += 12) {
         if (Math.sin(wx * 4.1 + wy * 2.7 + i) > 0.1) {
-          ctx.fillStyle = '#0f1830';
+          ctx.fillStyle = lvl.catColor + '18';
           ctx.fillRect(wx, wy, 7, 9);
-          ctx.fillStyle = '#0a0a1e';
+          ctx.fillStyle = `rgb(${mr},${mg},${mb})`;
         }
       }
     }
   }
+
+  // Level type label on screen (faint watermark)
+  ctx.save();
+  ctx.globalAlpha = 0.05;
+  ctx.fillStyle   = lvl.catColor;
+  ctx.font        = `bold ${H * 0.18}px Segoe UI`;
+  ctx.textAlign   = 'center';
+  ctx.fillText(lvl.type.toUpperCase(), W / 2, H * 0.6);
+  ctx.restore();
 }
 
 // ── Draw platforms ─────────────────────────────────────────────────────────
@@ -795,7 +871,52 @@ function draw() {
   );
 
   // Jump indicators
-  if (!p.onGround) drawJumpIndicator();
+  if (!p.onGround && !goalReached) drawJumpIndicator();
+
+  // Win celebration text
+  if (goalReached) {
+    const lvl  = getLevelConfig(currentLevel);
+    const prog = 1 - winTimer / 2.5;
+    const alpha = Math.min(1, prog * 3);
+    const scale = 0.8 + Math.sin(prog * Math.PI) * 0.3;
+    const cy    = canvas.height * 0.38;
+
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.translate(canvas.width / 2, cy);
+    ctx.scale(scale, scale);
+    ctx.textAlign = 'center';
+
+    ctx.fillStyle   = lvl.catColor;
+    ctx.shadowColor = lvl.catColor;
+    ctx.shadowBlur  = 30;
+    ctx.font        = 'bold 18px Segoe UI';
+    ctx.letterSpacing = '6px';
+    ctx.fillText('ZIEL ERREICHT!', 0, -30);
+
+    ctx.shadowBlur  = 50;
+    ctx.font        = 'bold 56px Segoe UI';
+    ctx.fillStyle   = '#ffffff';
+    ctx.fillText(lvl.name, 0, 30);
+
+    ctx.shadowBlur  = 0;
+    ctx.font        = '14px Segoe UI';
+    ctx.fillStyle   = lvl.catColor;
+    const isLast = currentLevel >= TOTAL_LEVELS - 1;
+    const nextMsg = isLast ? 'Alle 100 Level geschafft!' :
+      `Nächstes: ${getLevelConfig(currentLevel + 1).name}`;
+    ctx.fillText(nextMsg, 0, 62);
+
+    // Countdown ring
+    ctx.strokeStyle = lvl.catColor;
+    ctx.lineWidth   = 3;
+    ctx.shadowBlur  = 10;
+    ctx.beginPath();
+    ctx.arc(0, 100, 18, -Math.PI/2, -Math.PI/2 + (1-winTimer/2.5)*Math.PI*2);
+    ctx.stroke();
+
+    ctx.restore();
+  }
 
   // HUD
   document.getElementById('dist').textContent = score + 'm';
