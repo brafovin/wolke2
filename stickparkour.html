@@ -19,16 +19,9 @@
       font-size: 66px; font-weight: 900; letter-spacing: 8px;
       color: #fff; text-shadow: 0 0 40px rgba(100,160,255,0.6);
     }
-    #overlay .sub {
-      color: #445; font-size: 14px; letter-spacing: 2px; margin-top: 10px;
-    }
-    #overlay .keys {
-      margin-top: 28px;
-      display: flex; gap: 24px;
-    }
-    .key-box {
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-    }
+    #overlay .sub { color: #445; font-size: 14px; letter-spacing: 2px; margin-top: 10px; }
+    #overlay .keys { margin-top: 28px; display: flex; gap: 24px; }
+    .key-box { display: flex; flex-direction: column; align-items: center; gap: 8px; }
     .key-btn {
       width: 44px; height: 44px; border: 2px solid #333;
       border-radius: 8px; display: flex; align-items: center; justify-content: center;
@@ -69,9 +62,7 @@
     #level-fill {
       height: 100%; width: 0%;
       background: linear-gradient(90deg, #4466ff, #aa44ff);
-      border-radius: 4px;
-      box-shadow: 0 0 8px #6655ff;
-      transition: width 0.1s;
+      border-radius: 4px; box-shadow: 0 0 8px #6655ff; transition: width 0.1s;
     }
     #level-num { font-size: 13px; color: #7788ff; font-weight: 700; letter-spacing: 2px; }
 
@@ -83,6 +74,85 @@
     #goal-arrow .arr { font-size: 28px; color: #ffcc00; text-shadow: 0 0 12px #ffcc00; animation: pulse 0.8s infinite alternate; }
     #goal-arrow .arr-lbl { font-size: 10px; letter-spacing: 2px; color: #ffcc0099; }
     @keyframes pulse { from { opacity: 0.5; } to { opacity: 1; } }
+
+    /* ── Coin HUD ── */
+    #coin-hud {
+      position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(0,0,0,0.55); border: 1px solid #ffcc0033;
+      border-radius: 30px; padding: 7px 20px; pointer-events: none; z-index: 5;
+    }
+    #coin-hud .c-icon { font-size: 16px; }
+    #coin-hud .c-val  { font-size: 15px; font-weight: 700; color: #ffcc00; letter-spacing: 2px; }
+
+    /* ── Shop button ── */
+    #shop-btn {
+      position: fixed; bottom: 18px; right: 18px;
+      padding: 9px 18px; background: rgba(255,204,0,0.1);
+      border: 1px solid #ffcc0044; border-radius: 20px;
+      font-size: 13px; font-weight: 700; letter-spacing: 2px;
+      color: #ffcc00; cursor: pointer; z-index: 10;
+      transition: all 0.2s; font-family: 'Segoe UI', sans-serif;
+    }
+    #shop-btn:hover { background: rgba(255,204,0,0.22); border-color: #ffcc0099; }
+
+    /* ── Shop overlay ── */
+    #shop {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.96);
+      display: flex; align-items: center; justify-content: center; z-index: 30;
+    }
+    #shop-inner {
+      width: min(580px, 96vw); max-height: 88vh;
+      background: #090912; border: 1px solid #1e1e32; border-radius: 20px;
+      overflow: hidden; display: flex; flex-direction: column;
+    }
+    #shop-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 22px; border-bottom: 1px solid #141420; flex-shrink: 0;
+    }
+    #shop-title { font-size: 20px; font-weight: 900; letter-spacing: 6px; color: #fff; }
+    #shop-coins-disp { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 700; color: #ffcc00; }
+    #shop-close {
+      background: none; border: 1px solid #2a2a3e; border-radius: 8px;
+      color: #666; width: 30px; height: 30px; cursor: pointer; font-size: 15px;
+      transition: all 0.2s; font-family: 'Segoe UI', sans-serif;
+    }
+    #shop-close:hover { border-color: #555; color: #fff; }
+    #shop-tabs { display: flex; flex-shrink: 0; border-bottom: 1px solid #141420; }
+    .shop-tab {
+      flex: 1; padding: 11px; background: none; border: none; border-bottom: 2px solid transparent;
+      color: #334; font-size: 12px; font-weight: 700; letter-spacing: 2px;
+      cursor: pointer; text-transform: uppercase; transition: all 0.2s;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    .shop-tab.active { color: #ccc; border-bottom-color: #7755ee; }
+    .shop-tab:hover  { color: #888; }
+    #shop-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(130px,1fr));
+      gap: 12px; padding: 18px; overflow-y: auto;
+    }
+    .shop-item {
+      background: #0c0c1a; border: 1px solid #181828; border-radius: 14px;
+      padding: 14px 10px; display: flex; flex-direction: column;
+      align-items: center; gap: 7px; transition: all 0.2s;
+    }
+    .shop-item:hover  { border-color: #2a2a44; }
+    .shop-item.owned  { border-color: #223; }
+    .shop-item.equip  { border-color: #7755ee; box-shadow: 0 0 14px #7755ee33; }
+    .item-preview     { width: 60px; height: 60px; border-radius: 8px; background: #0a0a15; }
+    .item-name  { font-size: 10px; letter-spacing: 2px; color: #556; text-align: center; font-weight: 700; }
+    .item-price { font-size: 12px; color: #ffcc00; font-weight: 700; }
+    .item-btn {
+      padding: 5px 14px; border-radius: 20px; font-size: 10px; font-weight: 700;
+      letter-spacing: 1px; cursor: pointer; border: 1px solid;
+      transition: all 0.15s; font-family: 'Segoe UI', sans-serif;
+    }
+    .item-btn.buy  { background: rgba(255,204,0,0.08); border-color: #ffcc0055; color: #ffcc00; }
+    .item-btn.buy:hover { background: rgba(255,204,0,0.2); }
+    .item-btn.buy.poor { opacity: 0.4; cursor: default; }
+    .item-btn.sel  { background: rgba(119,85,238,0.1); border-color: #7755ee55; color: #aa88ff; }
+    .item-btn.sel:hover { background: rgba(119,85,238,0.22); }
+    .item-btn.act  { background: rgba(119,85,238,0.28); border-color: #7755ee; color: #fff; cursor: default; }
   </style>
 </head>
 <body>
@@ -102,6 +172,29 @@
 <div id="goal-arrow">
   <div class="arr">▶</div>
   <div class="arr-lbl">ZIEL</div>
+</div>
+
+<div id="coin-hud">
+  <span class="c-icon">🪙</span>
+  <span class="c-val" id="coin-count">0</span>
+</div>
+
+<button id="shop-btn" onclick="openShop()">🛍 SHOP</button>
+
+<div id="shop" style="display:none">
+  <div id="shop-inner">
+    <div id="shop-header">
+      <div id="shop-coins-disp">🪙 <span id="shop-coin-val">0</span></div>
+      <div id="shop-title">SHOP</div>
+      <button id="shop-close" onclick="closeShop()">✕</button>
+    </div>
+    <div id="shop-tabs">
+      <button class="shop-tab active" onclick="switchShopTab('skins',this)">SKINS</button>
+      <button class="shop-tab" onclick="switchShopTab('hats',this)">HÜTE</button>
+      <button class="shop-tab" onclick="switchShopTab('clothes',this)">KLEIDUNG</button>
+    </div>
+    <div id="shop-grid"></div>
+  </div>
 </div>
 
 <div id="overlay">
@@ -145,13 +238,14 @@ const GRAVITY   = 1400;
 const MOVE_SPD  = 280;
 const JUMP_V    = -560;
 const DJ_V      = -500;
-const FRICTION  = 0.78;  // when no key pressed (horizontal)
+const FRICTION  = 0.78;
 
 // ── Input ─────────────────────────────────────────────────────────────────
 const keys = {};
-let jumpBuf = false;   // buffered jump press
+let jumpBuf = false;
 
 window.addEventListener('keydown', e => {
+  if (e.code === 'Escape' && shopOpen) { closeShop(); return; }
   if (!keys[e.code]) {
     if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') jumpBuf = true;
   }
@@ -181,11 +275,47 @@ function burst(x, y, count, hue, spread = 100) {
   }
 }
 
+// ── Cosmetics ──────────────────────────────────────────────────────────────
+const SKINS = [
+  { id:'white',   name:'STANDARD',   price:0,   color:'#ffffff', glow:'rgba(140,180,255,0.8)' },
+  { id:'neon',    name:'NEON',       price:50,  color:'#00ff88', glow:'rgba(0,255,136,0.8)'   },
+  { id:'fire',    name:'FEUER',      price:80,  color:'#ff5533', glow:'rgba(255,85,51,0.9)'   },
+  { id:'ice',     name:'EIS',        price:80,  color:'#55ddff', glow:'rgba(85,221,255,0.8)'  },
+  { id:'gold',    name:'GOLD',       price:150, color:'#ffcc00', glow:'rgba(255,204,0,0.9)'   },
+  { id:'purple',  name:'LILA',       price:100, color:'#cc44ff', glow:'rgba(204,68,255,0.8)'  },
+  { id:'red',     name:'ROT',        price:60,  color:'#ff3344', glow:'rgba(255,51,68,0.8)'   },
+  { id:'rainbow', name:'REGENBOGEN', price:200, color:null,      glow:'rgba(200,100,255,0.8)' },
+];
+const HATS = [
+  { id:'none',   name:'KEIN HUT',  price:0   },
+  { id:'cap',    name:'MÜTZE',     price:40  },
+  { id:'top',    name:'ZYLINDER',  price:80  },
+  { id:'crown',  name:'KRONE',     price:120 },
+  { id:'cowboy', name:'COWBOY',    price:90  },
+  { id:'party',  name:'PARTYHUT',  price:60  },
+];
+const CLOTHES = [
+  { id:'none',   name:'KEIN OUTFIT', price:0   },
+  { id:'tshirt', name:'T-SHIRT',     price:40  },
+  { id:'jacket', name:'JACKE',       price:80  },
+  { id:'cape',   name:'CAPE',        price:100 },
+  { id:'suit',   name:'ANZUG',       price:150 },
+];
+
+let totalCoins      = parseInt(localStorage.getItem('spkCoins') || '0');
+let ownedItems      = new Set(JSON.parse(localStorage.getItem('spkOwned') || '["white","none"]'));
+let selectedSkin    = localStorage.getItem('spkSelSkin')    || 'white';
+let selectedHat     = localStorage.getItem('spkSelHat')     || 'none';
+let selectedClothes = localStorage.getItem('spkSelClothes') || 'none';
+let shopTab         = 'skins';
+let shopOpen        = false;
+
+// ── Coins ──────────────────────────────────────────────────────────────────
+const coins = [];
+
 // ── Level config (100 Levels) ──────────────────────────────────────────────
 const TOTAL_LEVELS = 100;
-
-// Level types – cycle through every few levels for variety
-const LEVEL_TYPES = ['flat','climb','gap','moving','chaos'];
+const LEVEL_TYPES  = ['flat','climb','gap','moving','chaos'];
 
 function getLevelConfig(n) {
   const num = n + 1;
@@ -213,18 +343,15 @@ function getLevelConfig(n) {
     diff = 0.86 + ((n-80) / 19) * 0.14;
   }
 
-  // Level type: cycles every 5 levels so nearby levels feel different
   const type = LEVEL_TYPES[n % LEVEL_TYPES.length];
-
-  // Distance: 900px (L1) → 7000px (L100)
   const dist = Math.round(900 + (n / 99) * 6100);
   return { dist, diff, type, name: `LEVEL ${num}`, category, hue, catColor, sky1, sky2, buildCol };
 }
 
 let currentLevel = 0;
 let goal = null;
-let winTimer   = 0;  // counts down after goal → auto next level
-let deathTimer = 0;  // counts down after fall → auto restart
+let winTimer   = 0;
+let deathTimer = 0;
 
 // ── Platform colors ────────────────────────────────────────────────────────
 const PLAT_HUES = [210, 270, 340, 160, 30, 190];
@@ -243,44 +370,31 @@ function genPlatform(lvl, lastPlat, i) {
   let gap, dy, w, moving = false, moveRange = 0, moveSpeed = 0;
 
   if (t === 'flat') {
-    // Small gaps, tiny height difference
     gap = 90  + d * 80  + Math.random() * 60;
     dy  = (Math.random() - 0.5) * (30 + d * 60);
     w   = Math.max(70,  200 - d * 70  - Math.random() * 30);
-
   } else if (t === 'climb') {
-    // Platforms go UP more than down – player has to climb
     gap = 100 + d * 90  + Math.random() * 50;
-    dy  = -(20 + Math.random() * (50 + d * 100));  // mostly upward
-    if (Math.random() < 0.3) dy = Math.abs(dy) * 0.5; // occasional descent
+    dy  = -(20 + Math.random() * (50 + d * 100));
+    if (Math.random() < 0.3) dy = Math.abs(dy) * 0.5;
     w   = Math.max(60,  170 - d * 60  - Math.random() * 40);
-
   } else if (t === 'gap') {
-    // Large horizontal gaps – need double jumps
     gap = 160 + d * 160 + Math.random() * 80;
     dy  = (Math.random() - 0.5) * (40 + d * 80);
     w   = Math.max(55,  160 - d * 70  - Math.random() * 40);
-
   } else if (t === 'moving') {
-    // Platforms move up and down
     gap = 120 + d * 110 + Math.random() * 60;
     dy  = (Math.random() - 0.5) * (60 + d * 100);
     w   = Math.max(60,  160 - d * 60  - Math.random() * 30);
-    if (i % 2 === 1 && d > 0.1) {  // every other platform moves
-      moving    = true;
-      moveRange = 30 + d * 60;
-      moveSpeed = 60 + d * 80;
+    if (i % 2 === 1 && d > 0.1) {
+      moving = true; moveRange = 30 + d * 60; moveSpeed = 60 + d * 80;
     }
-
-  } else { // 'chaos'
-    // Tiny platforms, huge gaps, fast movers
+  } else {
     gap = 150 + d * 180 + Math.random() * 100;
     dy  = (Math.random() - 0.5) * (80 + d * 150);
     w   = Math.max(40,  120 - d * 70  - Math.random() * 30);
     if (Math.random() < 0.6) {
-      moving    = true;
-      moveRange = 40 + d * 80;
-      moveSpeed = 80 + d * 120;
+      moving = true; moveRange = 40 + d * 80; moveSpeed = 80 + d * 120;
     }
   }
 
@@ -290,10 +404,8 @@ function genPlatform(lvl, lastPlat, i) {
 
   const pl = { x: nx, y: ny, w, h: 18, hue, moving };
   if (moving) {
-    pl.baseY     = ny;
-    pl.moveRange = moveRange;
-    pl.moveSpeed = moveSpeed;
-    pl.moveT     = Math.random() * Math.PI * 2; // offset so they don't all sync
+    pl.baseY = ny; pl.moveRange = moveRange; pl.moveSpeed = moveSpeed;
+    pl.moveT = Math.random() * Math.PI * 2;
   }
   return pl;
 }
@@ -304,10 +416,8 @@ function initPlatforms() {
   goal = null;
 
   const lvl = getLevelConfig(currentLevel);
-  // 5–10 platforms between start and goal, more in harder levels
-  const platCount = 5 + Math.floor(Math.random() * 6);
+  const platCount = 5 + Math.floor(Math.random() * 6); // 5–10 platforms
 
-  // Starting platform (always safe and wide)
   let last = { x: -100, y: canvas.height * 0.68, w: 320, h: 18, hue: 210, moving: false };
   platforms.push(last);
 
@@ -317,32 +427,55 @@ function initPlatforms() {
     last = pl;
   }
 
-  // Goal platform – always wide and reachable, placed after last platform
   const goalGap = 100 + Math.random() * 80;
   const goalPlat = {
     x: last.x + last.w + goalGap,
     y: Math.max(canvas.height * 0.28, Math.min(canvas.height * 0.72,
         last.y + (Math.random()-0.5) * 60)),
-    w: 240, h: 18,
-    hue: 50, isGoal: true, moving: false,
+    w: 240, h: 18, hue: 50, isGoal: true, moving: false,
   };
   platforms.push(goalPlat);
   goal = goalPlat;
+
+  // ── Generate coins: above platforms AND floating in mid-air ───────────────
+  coins.length = 0;
+  const midPlats = platforms.filter(pl => !pl.isGoal && pl.w < 300);
+
+  // Coins above platforms
+  const platCoinCount = 2 + Math.floor(Math.random() * 3);
+  const shuffled = [...midPlats].sort(() => Math.random() - 0.5);
+  for (let i = 0; i < Math.min(platCoinCount, shuffled.length); i++) {
+    const pl = shuffled[i];
+    coins.push({
+      x:    pl.x + pl.w * (0.2 + Math.random() * 0.6),
+      y:    pl.y - 30 - Math.random() * 15,
+      collected: false,
+      phase: Math.random() * Math.PI * 2,
+    });
+  }
+
+  // Coins floating in air between platforms (arcs / mid-gaps)
+  const airCoinCount = 3 + Math.floor(Math.random() * 4);
+  for (let i = 0; i < airCoinCount; i++) {
+    if (midPlats.length < 2) break;
+    const a = midPlats[Math.floor(Math.random() * (midPlats.length - 1))];
+    const b = midPlats[Math.floor(Math.random() * midPlats.length)];
+    const tx = a.x + a.w + (b.x - a.x - a.w) * (0.3 + Math.random() * 0.4);
+    const ty = Math.min(a.y, b.y) - 40 - Math.random() * 80;
+    coins.push({
+      x:    tx,
+      y:    Math.max(canvas.height * 0.1, ty),
+      collected: false,
+      phase: Math.random() * Math.PI * 2,
+    });
+  }
 }
 
 // ── Player ────────────────────────────────────────────────────────────────
 const p = {
-  x: 60, y: 0,
-  vx: 0, vy: 0,
-  w: 20, h: 64,
-  onGround: false,
-  jumpsLeft: 2,
-  facing: 1,      // 1 = right, -1 = left
-  state: 'idle',  // idle | run | jump | djump | fall
-  djumpSpin: 0,   // rotation during double jump (0..2π)
-  coyote: 0,
-  animT: 0,
-  landSquish: 0,
+  x: 60, y: 0, vx: 0, vy: 0, w: 20, h: 64,
+  onGround: false, jumpsLeft: 2, facing: 1,
+  state: 'idle', djumpSpin: 0, coyote: 0, animT: 0, landSquish: 0,
 };
 
 let score    = 0;
@@ -350,29 +483,23 @@ let best     = parseInt(localStorage.getItem('spkBest') || '0');
 let running  = false;
 let maxX     = 0;
 let goalReached = false;
-let flagWave = 0;
+let flagWave    = 0;
 
 // ── Start / restart ────────────────────────────────────────────────────────
-function startGame() {
-  currentLevel = 0;
-  loadLevel();
-}
+function startGame() { currentLevel = 0; loadLevel(); }
 
 function loadLevel() {
   initPlatforms();
   p.x = 60; p.y = canvas.height * 0.68 - p.h;
-  p.vx = 0; p.vy = 0;
-  p.onGround = false; p.jumpsLeft = 2;
-  p.facing = 1; p.state = 'idle';
-  p.djumpSpin = 0; p.coyote = 0; p.animT = 0; p.landSquish = 0;
+  p.vx = 0; p.vy = 0; p.onGround = false; p.jumpsLeft = 2;
+  p.facing = 1; p.state = 'idle'; p.djumpSpin = 0; p.coyote = 0;
+  p.animT = 0; p.landSquish = 0;
   camX = 0; camY = 0;
   score = 0; maxX = p.x;
-  goalReached = false;
-  deathTimer  = 0;
-  particles.length = 0;
-  jumpBuf = false;
-  running = true;
+  goalReached = false; deathTimer = 0;
+  particles.length = 0; jumpBuf = false; running = true;
   document.getElementById('overlay').style.display = 'none';
+  document.getElementById('coin-count').textContent = totalCoins;
   updateLevelHUD();
 }
 
@@ -388,24 +515,22 @@ function updateLevelHUD() {
   const remaining = Math.max(0, Math.floor((goalX - p.x) / 5));
   document.getElementById('level-label').textContent = remaining > 0 ? `noch ${remaining}m` : 'fast da!';
   document.getElementById('level-num').style.color = lvl.catColor;
-
   const arrow = document.getElementById('goal-arrow');
   arrow.style.display = (goal && goal.x - camX > canvas.width + 20) ? 'flex' : 'none';
 }
 
 document.getElementById('startBtn').addEventListener('click', () => { currentLevel = 0; loadLevel(); });
 
-// Win! – auto-switch after 1.5s
+// Win!
 function levelWon() {
   goalReached = true;
   winTimer    = 1.5;
   burst(goal.x + goal.w/2, goal.y, 50, 50, 220);
   burst(goal.x + goal.w/2, goal.y - 40, 30, 60, 160);
-  // Freeze player
   p.vx = 0; p.vy = 0;
 }
 
-// ── Game over ──────────────────────────────────────────────────────────────
+// Game over – auto restart after 1.5s
 function gameOver() {
   if (score > best) { best = score; localStorage.setItem('spkBest', best); }
   deathTimer = 1.5;
@@ -423,6 +548,213 @@ function updateParticles(dt) {
   }
 }
 
+// ── Shop ──────────────────────────────────────────────────────────────────
+function openShop() {
+  shopOpen = true;
+  running  = false;
+  document.getElementById('shop-coin-val').textContent = totalCoins;
+  document.getElementById('shop').style.display = 'flex';
+  renderShop(shopTab);
+}
+
+function closeShop() {
+  shopOpen = false;
+  document.getElementById('shop').style.display = 'none';
+  if (document.getElementById('overlay').style.display !== 'flex') running = true;
+}
+
+function switchShopTab(tab, btn) {
+  shopTab = tab;
+  document.querySelectorAll('.shop-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderShop(tab);
+}
+
+function renderShop(tab) {
+  const grid  = document.getElementById('shop-grid');
+  grid.innerHTML = '';
+  const items = tab === 'skins' ? SKINS : tab === 'hats' ? HATS : CLOTHES;
+  const selId = tab === 'skins' ? selectedSkin : tab === 'hats' ? selectedHat : selectedClothes;
+
+  for (const item of items) {
+    const owned    = item.price === 0 || ownedItems.has(item.id);
+    const isActive = item.id === selId;
+
+    const card = document.createElement('div');
+    card.className = 'shop-item' + (isActive ? ' equip' : owned ? ' owned' : '');
+
+    const pv = document.createElement('canvas');
+    pv.width = 60; pv.height = 60; pv.className = 'item-preview';
+    renderItemPreview(pv, tab, item);
+    card.appendChild(pv);
+
+    const nm = document.createElement('div');
+    nm.className = 'item-name'; nm.textContent = item.name;
+    card.appendChild(nm);
+
+    if (item.price > 0) {
+      const pr = document.createElement('div');
+      pr.className = 'item-price'; pr.textContent = `🪙 ${item.price}`;
+      card.appendChild(pr);
+    }
+
+    const btn = document.createElement('button');
+    if (isActive) {
+      btn.className = 'item-btn act'; btn.textContent = 'AKTIV';
+    } else if (owned) {
+      btn.className = 'item-btn sel'; btn.textContent = 'WÄHLEN';
+    } else {
+      btn.className = 'item-btn buy' + (totalCoins < item.price ? ' poor' : '');
+      btn.textContent = 'KAUFEN';
+    }
+    btn.onclick = () => buyOrSelect(tab, item);
+    card.appendChild(btn);
+    grid.appendChild(card);
+  }
+}
+
+function buyOrSelect(tab, item) {
+  const owned = item.price === 0 || ownedItems.has(item.id);
+  if (!owned) {
+    if (totalCoins < item.price) return;
+    totalCoins -= item.price;
+    localStorage.setItem('spkCoins', totalCoins);
+    ownedItems.add(item.id);
+    localStorage.setItem('spkOwned', JSON.stringify([...ownedItems]));
+    document.getElementById('coin-count').textContent     = totalCoins;
+    document.getElementById('shop-coin-val').textContent  = totalCoins;
+  }
+  if (tab === 'skins')   { selectedSkin    = item.id; localStorage.setItem('spkSelSkin',    item.id); }
+  if (tab === 'hats')    { selectedHat     = item.id; localStorage.setItem('spkSelHat',     item.id); }
+  if (tab === 'clothes') { selectedClothes = item.id; localStorage.setItem('spkSelClothes', item.id); }
+  renderShop(tab);
+}
+
+function renderItemPreview(cv, tab, item) {
+  const c2 = cv.getContext('2d');
+  c2.clearRect(0, 0, 60, 60);
+  c2.save();
+
+  if (tab === 'skins') {
+    const color = item.id === 'rainbow' ? '#ff44aa' : (item.color || '#fff');
+    c2.strokeStyle = color; c2.lineWidth = 2.5; c2.lineCap = 'round'; c2.lineJoin = 'round';
+    c2.shadowColor = item.glow || 'rgba(140,180,255,0.8)'; c2.shadowBlur = 6;
+    c2.beginPath(); c2.arc(30,13,6,0,Math.PI*2); c2.stroke();
+    c2.beginPath(); c2.moveTo(30,19); c2.lineTo(30,36); c2.stroke();
+    c2.beginPath(); c2.moveTo(30,25); c2.lineTo(18,31); c2.stroke();
+    c2.beginPath(); c2.moveTo(30,25); c2.lineTo(42,31); c2.stroke();
+    c2.beginPath(); c2.moveTo(30,36); c2.lineTo(22,50); c2.stroke();
+    c2.beginPath(); c2.moveTo(30,36); c2.lineTo(38,50); c2.stroke();
+    if (item.id === 'rainbow') {
+      c2.shadowBlur = 0; c2.fillStyle = '#44ffcc';
+      c2.font = 'bold 8px Segoe UI'; c2.textAlign = 'center'; c2.fillText('RGB', 30, 58);
+    }
+
+  } else if (tab === 'hats') {
+    c2.translate(30, 52);
+    if (item.id === 'none') {
+      c2.strokeStyle = '#334'; c2.lineWidth = 1.5;
+      c2.beginPath(); c2.arc(0,-18,14,0,Math.PI*2); c2.stroke();
+      c2.beginPath(); c2.moveTo(-10,-18); c2.lineTo(10,-18); c2.stroke();
+    } else {
+      previewHat(c2, item.id);
+    }
+
+  } else {
+    c2.translate(30, 56);
+    if (item.id === 'none') {
+      c2.strokeStyle = '#334'; c2.lineWidth = 1.5;
+      c2.strokeRect(-12,-42,24,26);
+      c2.beginPath(); c2.moveTo(-6,-42); c2.lineTo(0,-36); c2.lineTo(6,-42); c2.stroke();
+    } else {
+      previewClothes(c2, item.id);
+    }
+  }
+  c2.restore();
+}
+
+function previewHat(c2, id) {
+  if (id === 'cap') {
+    c2.fillStyle = '#4466ff';
+    c2.beginPath(); c2.arc(0,-16,10,Math.PI,0); c2.fill();
+    c2.fillStyle = '#3355cc'; c2.fillRect(-14,-16,18,4);
+    c2.fillStyle = '#fff'; c2.shadowColor='#fff'; c2.shadowBlur=4;
+    c2.beginPath(); c2.arc(0,-28,4,0,Math.PI*2); c2.fill();
+  } else if (id === 'top') {
+    c2.fillStyle='#1a1a1a'; c2.strokeStyle='#444'; c2.lineWidth=1.5;
+    c2.fillRect(-8,-42,16,24); c2.strokeRect(-8,-42,16,24);
+    c2.fillRect(-14,-20,28,5); c2.strokeRect(-14,-20,28,5);
+    c2.fillStyle='#cc4444'; c2.fillRect(-8,-24,16,4);
+  } else if (id === 'crown') {
+    c2.fillStyle='#ffcc00'; c2.strokeStyle='#ffaa00'; c2.lineWidth=1.5;
+    c2.shadowColor='#ffcc00'; c2.shadowBlur=8;
+    c2.beginPath();
+    c2.moveTo(-14,-8); c2.lineTo(-14,-26); c2.lineTo(-7,-18); c2.lineTo(0,-32);
+    c2.lineTo(7,-18); c2.lineTo(14,-26); c2.lineTo(14,-8); c2.closePath();
+    c2.fill(); c2.stroke();
+    c2.shadowBlur=4; c2.fillStyle='#ff4466';
+    c2.beginPath(); c2.arc(0,-25,3,0,Math.PI*2); c2.fill();
+    c2.fillStyle='#4488ff';
+    c2.beginPath(); c2.arc(-9,-14,2,0,Math.PI*2); c2.fill();
+    c2.beginPath(); c2.arc(9,-14,2,0,Math.PI*2); c2.fill();
+  } else if (id === 'cowboy') {
+    c2.fillStyle='#7a3b0d'; c2.strokeStyle='#5a2b08'; c2.lineWidth=1.5;
+    c2.beginPath(); c2.ellipse(0,-16,20,5,0,0,Math.PI*2); c2.fill(); c2.stroke();
+    c2.beginPath();
+    c2.moveTo(-11,-16); c2.quadraticCurveTo(-13,-36,-4,-40);
+    c2.lineTo(4,-40); c2.quadraticCurveTo(13,-36,11,-16);
+    c2.fill(); c2.stroke();
+    c2.strokeStyle='#ffcc00'; c2.lineWidth=2;
+    c2.beginPath(); c2.moveTo(-11,-22); c2.lineTo(11,-22); c2.stroke();
+  } else if (id === 'party') {
+    c2.fillStyle='#ff44cc'; c2.strokeStyle='#dd22aa'; c2.lineWidth=1.5;
+    c2.beginPath();
+    c2.moveTo(-12,-8); c2.lineTo(0,-42); c2.lineTo(12,-8); c2.closePath();
+    c2.fill(); c2.stroke();
+    c2.shadowColor='#ffee00'; c2.shadowBlur=5; c2.fillStyle='#ffee00';
+    for (const [dx,dy] of [[-4,-18],[3,-26],[-1,-32],[5,-13]]) {
+      c2.beginPath(); c2.arc(dx,dy,2.5,0,Math.PI*2); c2.fill();
+    }
+    c2.shadowBlur=8; c2.beginPath(); c2.arc(0,-43,4,0,Math.PI*2); c2.fill();
+  }
+}
+
+function previewClothes(c2, id) {
+  if (id === 'tshirt') {
+    c2.fillStyle='#2255bb99'; c2.strokeStyle='#3366cc'; c2.lineWidth=1.5;
+    c2.beginPath();
+    c2.moveTo(-12,-50); c2.lineTo(-10,-28); c2.lineTo(10,-28); c2.lineTo(12,-50);
+    c2.closePath(); c2.fill(); c2.stroke();
+    c2.beginPath(); c2.moveTo(-12,-50); c2.lineTo(-20,-38); c2.stroke();
+    c2.beginPath(); c2.moveTo(12,-50);  c2.lineTo(20,-38);  c2.stroke();
+  } else if (id === 'jacket') {
+    c2.fillStyle='#1a1a3399'; c2.strokeStyle='#2a2a99'; c2.lineWidth=1.5;
+    c2.beginPath();
+    c2.moveTo(-14,-52); c2.lineTo(-12,-26); c2.lineTo(12,-26); c2.lineTo(14,-52);
+    c2.closePath(); c2.fill(); c2.stroke();
+    c2.beginPath(); c2.moveTo(-4,-52); c2.lineTo(0,-44); c2.lineTo(4,-52); c2.stroke();
+    c2.fillStyle='#ffffff44'; c2.beginPath(); c2.arc(0,-36,2.5,0,Math.PI*2); c2.fill();
+  } else if (id === 'cape') {
+    c2.fillStyle='#8800ffaa'; c2.strokeStyle='#aa44ff'; c2.lineWidth=1.5;
+    c2.shadowColor='#8800ff'; c2.shadowBlur=8;
+    c2.beginPath();
+    c2.moveTo(-3,-52); c2.quadraticCurveTo(-24,-28,-16,0);
+    c2.lineTo(16,0); c2.quadraticCurveTo(24,-28,3,-52);
+    c2.closePath(); c2.fill(); c2.stroke();
+  } else if (id === 'suit') {
+    c2.fillStyle='#0f0f22dd'; c2.strokeStyle='#1818aa'; c2.lineWidth=1.5;
+    c2.beginPath();
+    c2.moveTo(-14,-53); c2.lineTo(-12,-24); c2.lineTo(12,-24); c2.lineTo(14,-53);
+    c2.closePath(); c2.fill(); c2.stroke();
+    c2.beginPath(); c2.moveTo(-5,-53); c2.lineTo(0,-45); c2.lineTo(5,-53); c2.stroke();
+    c2.fillStyle='#bb1111';
+    c2.beginPath();
+    c2.moveTo(-3,-50); c2.lineTo(-3,-32); c2.lineTo(0,-28); c2.lineTo(3,-32); c2.lineTo(3,-50);
+    c2.closePath(); c2.fill();
+    c2.fillStyle='#ffffff55'; c2.fillRect(-12,-44,5,4);
+  }
+}
+
 // ── Update ────────────────────────────────────────────────────────────────
 function update(dt) {
   p.animT    += dt;
@@ -434,9 +766,7 @@ function update(dt) {
   if (deathTimer > 0) {
     deathTimer -= dt;
     updateParticles(dt);
-    if (deathTimer <= 0) {
-      loadLevel();
-    }
+    if (deathTimer <= 0) loadLevel();
     return;
   }
 
@@ -444,7 +774,6 @@ function update(dt) {
   if (goalReached) {
     winTimer -= dt;
     flagWave += dt * 6;
-    // Keep pumping celebration particles
     if (Math.random() < dt * 8 && goal)
       burst(goal.x + goal.w/2 + (Math.random()-0.5)*40,
             goal.y - Math.random()*30, 3, 50+Math.random()*60, 100);
@@ -453,11 +782,9 @@ function update(dt) {
       else { currentLevel++; }
       loadLevel();
     }
-    // Slowly slide player toward flag while celebrating
     p.x += (goal.x + goal.w/2 - p.w/2 - p.x) * dt * 2;
     p.state = 'idle';
-    updateLevelHUD();
-    updateParticles(dt);
+    updateLevelHUD(); updateParticles(dt);
     return;
   }
 
@@ -466,24 +793,17 @@ function update(dt) {
   const right = keys['ArrowRight'] || keys['KeyD'];
 
   if (right) { p.vx += (MOVE_SPD - p.vx) * Math.min(1, dt * 12); p.facing =  1; }
-  else if (left)  { p.vx += (-MOVE_SPD - p.vx) * Math.min(1, dt * 12); p.facing = -1; }
+  else if (left) { p.vx += (-MOVE_SPD - p.vx) * Math.min(1, dt * 12); p.facing = -1; }
   else { p.vx *= Math.pow(FRICTION, dt * 60); }
 
   // ── Jump ──────────────────────────────────────────────────────────────
   if (jumpBuf) {
     jumpBuf = false;
     if (p.onGround || p.coyote > 0) {
-      // Normal jump
-      p.vy = JUMP_V;
-      p.onGround = false;
-      p.coyote   = 0;
-      p.jumpsLeft = 1;
+      p.vy = JUMP_V; p.onGround = false; p.coyote = 0; p.jumpsLeft = 1;
       burst(p.x + p.w / 2, p.y + p.h, 8, 210, 80);
     } else if (p.jumpsLeft > 0) {
-      // Double jump
-      p.vy = DJ_V;
-      p.jumpsLeft = 0;
-      p.djumpSpin = Math.PI * 2;
+      p.vy = DJ_V; p.jumpsLeft = 0; p.djumpSpin = Math.PI * 2;
       burst(p.x + p.w / 2, p.y + p.h / 2, 14, 260, 130);
     }
   }
@@ -491,10 +811,8 @@ function update(dt) {
   // ── Gravity ───────────────────────────────────────────────────────────
   p.vy += GRAVITY * dt;
   p.vy  = Math.min(p.vy, 900);
-
-  // ── Move ──────────────────────────────────────────────────────────────
-  p.x += p.vx * dt;
-  p.y += p.vy * dt;
+  p.x  += p.vx * dt;
+  p.y  += p.vy * dt;
 
   // ── Move platforms ─────────────────────────────────────────────────────
   for (const pl of platforms) {
@@ -510,50 +828,50 @@ function update(dt) {
   for (const pl of platforms) {
     const inX = p.x + p.w > pl.x && p.x < pl.x + pl.w;
     if (!inX) continue;
-
-    // Landing from above
     if (p.vy >= 0) {
-      const prevBot = (p.y + p.vy * dt * -1) + p.h;  // approx previous bottom
+      const prevBot = (p.y + p.vy * dt * -1) + p.h;
       const curBot  = p.y + p.h;
       if (curBot >= pl.y && prevBot <= pl.y + 6) {
-        p.y        = pl.y - p.h;
-        p.vy       = 0;
-        p.onGround = true;
-        p.jumpsLeft = 2;
-        p.coyote   = 0.13;
-        if (!wasOnGround) {
-          p.landSquish = 0.18;
-          burst(p.x + p.w / 2, pl.y, 6, pl.hue, 60);
-        }
+        p.y = pl.y - p.h; p.vy = 0; p.onGround = true; p.jumpsLeft = 2; p.coyote = 0.13;
+        if (!wasOnGround) { p.landSquish = 0.18; burst(p.x + p.w / 2, pl.y, 6, pl.hue, 60); }
       }
     }
-    // Head bump
-    if (p.vy < 0 && p.y < pl.y + pl.h && p.y > pl.y) {
-      p.y  = pl.y + pl.h;
-      p.vy = 0;
-    }
+    if (p.vy < 0 && p.y < pl.y + pl.h && p.y > pl.y) { p.y = pl.y + pl.h; p.vy = 0; }
   }
 
   if (!p.onGround && wasOnGround) p.coyote = 0.13;
 
   // ── State ─────────────────────────────────────────────────────────────
   const moving = Math.abs(p.vx) > 20;
-  if (p.djumpSpin > 0)    p.state = 'djump';
+  if (p.djumpSpin > 0)             p.state = 'djump';
   else if (!p.onGround && p.vy < 0) p.state = 'jump';
   else if (!p.onGround && p.vy > 0) p.state = 'fall';
-  else if (moving)        p.state = 'run';
-  else                    p.state = 'idle';
+  else if (moving)                   p.state = 'run';
+  else                               p.state = 'idle';
 
   // ── Score ─────────────────────────────────────────────────────────────
-  if (p.x > maxX) { maxX = p.x; }
+  if (p.x > maxX) maxX = p.x;
   score = Math.max(0, Math.floor((maxX - 60) / 5));
 
   // ── Goal check ────────────────────────────────────────────────────────
   if (goal && !goalReached) {
     const flagX = goal.x + goal.w / 2;
     if (Math.abs(p.x + p.w/2 - flagX) < 40 && Math.abs(p.y + p.h - goal.y) < 30) {
-      levelWon();
-      return;
+      levelWon(); return;
+    }
+  }
+
+  // ── Coin collection ────────────────────────────────────────────────────
+  const px2 = p.x + p.w / 2, py2 = p.y + p.h / 2;
+  for (const c of coins) {
+    if (c.collected) continue;
+    if (Math.abs(px2 - c.x) < 22 && Math.abs(py2 - c.y) < 22) {
+      c.collected = true;
+      totalCoins++;
+      localStorage.setItem('spkCoins', totalCoins);
+      burst(c.x, c.y, 10, 50, 70);
+      document.getElementById('coin-count').textContent    = totalCoins;
+      document.getElementById('shop-coin-val').textContent = totalCoins;
     }
   }
 
@@ -563,17 +881,128 @@ function update(dt) {
   camX += (targetX - camX) * Math.min(1, dt * 7);
   camY += (targetY - camY) * Math.min(1, dt * 5);
 
-  // ── Particles ──────────────────────────────────────────────────────────
   updateParticles(dt);
-
-  // ── Flag wave ──────────────────────────────────────────────────────────
   flagWave += dt * 3;
-
-  // ── HUD update ────────────────────────────────────────────────────────
   updateLevelHUD();
 
-  // ── Death ──────────────────────────────────────────────────────────────
   if (p.y > canvas.height + 200) gameOver();
+}
+
+// ── Skin helper ───────────────────────────────────────────────────────────
+function getSkinStyle() {
+  if (selectedSkin === 'rainbow') {
+    const hue = (p.animT * 100) % 360;
+    return { color: `hsl(${hue},100%,70%)`, glow: `hsla(${hue},100%,70%,0.8)` };
+  }
+  const s = SKINS.find(s => s.id === selectedSkin) || SKINS[0];
+  return { color: s.color, glow: s.glow };
+}
+
+// ── Hat drawing (inside figure transform) ─────────────────────────────────
+function drawHatOnFigure(cx, headY) {
+  const hat = selectedHat;
+  if (hat === 'none') return;
+  cx.save(); cx.shadowBlur = 0;
+
+  if (hat === 'cap') {
+    cx.fillStyle = '#4466ff';
+    cx.beginPath(); cx.arc(0, headY, 10, Math.PI, 0); cx.fill();
+    cx.fillStyle = '#3355cc'; cx.fillRect(-13, headY, 17, 4);
+    cx.fillStyle = '#fff'; cx.shadowColor = '#fff'; cx.shadowBlur = 4;
+    cx.beginPath(); cx.arc(0, headY - 12, 3.5, 0, Math.PI*2); cx.fill();
+
+  } else if (hat === 'top') {
+    cx.fillStyle = '#1a1a1a'; cx.strokeStyle = '#444'; cx.lineWidth = 1.5;
+    cx.fillRect(-8, headY - 30, 16, 22); cx.strokeRect(-8, headY - 30, 16, 22);
+    cx.fillRect(-14, headY - 10, 28, 4); cx.strokeRect(-14, headY - 10, 28, 4);
+    cx.fillStyle = '#cc4444'; cx.fillRect(-8, headY - 14, 16, 3);
+
+  } else if (hat === 'crown') {
+    cx.fillStyle = '#ffcc00'; cx.strokeStyle = '#ffaa00'; cx.lineWidth = 1.5;
+    cx.shadowColor = '#ffcc00'; cx.shadowBlur = 10;
+    cx.beginPath();
+    cx.moveTo(-12, headY - 7); cx.lineTo(-12, headY - 22);
+    cx.lineTo(-6,  headY - 15); cx.lineTo(0,  headY - 26);
+    cx.lineTo(6,   headY - 15); cx.lineTo(12, headY - 22);
+    cx.lineTo(12,  headY - 7);  cx.closePath(); cx.fill(); cx.stroke();
+    cx.shadowBlur = 5;
+    cx.fillStyle = '#ff4466'; cx.beginPath(); cx.arc(0, headY-20, 2.5, 0, Math.PI*2); cx.fill();
+    cx.fillStyle = '#4488ff';
+    cx.beginPath(); cx.arc(-8, headY-13, 1.8, 0, Math.PI*2); cx.fill();
+    cx.beginPath(); cx.arc(8,  headY-13, 1.8, 0, Math.PI*2); cx.fill();
+
+  } else if (hat === 'cowboy') {
+    cx.fillStyle = '#7a3b0d'; cx.strokeStyle = '#5a2b08'; cx.lineWidth = 1.5;
+    cx.beginPath(); cx.ellipse(0, headY - 8, 18, 5, 0, 0, Math.PI*2); cx.fill(); cx.stroke();
+    cx.beginPath();
+    cx.moveTo(-10, headY - 8); cx.quadraticCurveTo(-12, headY - 28, -4, headY - 30);
+    cx.lineTo(4, headY - 30);  cx.quadraticCurveTo(12, headY - 28, 10, headY - 8);
+    cx.fill(); cx.stroke();
+    cx.strokeStyle = '#ffcc00'; cx.lineWidth = 2;
+    cx.beginPath(); cx.moveTo(-10, headY - 12); cx.lineTo(10, headY - 12); cx.stroke();
+
+  } else if (hat === 'party') {
+    cx.fillStyle = '#ff44cc'; cx.strokeStyle = '#dd22aa'; cx.lineWidth = 1.5;
+    cx.beginPath();
+    cx.moveTo(-10, headY - 7); cx.lineTo(0, headY - 31); cx.lineTo(10, headY - 7);
+    cx.closePath(); cx.fill(); cx.stroke();
+    cx.shadowColor = '#ffee00'; cx.shadowBlur = 5; cx.fillStyle = '#ffee00';
+    for (const [dx,dy] of [[-3,-15],[4,-22],[-1,-27],[5,-12]]) {
+      cx.beginPath(); cx.arc(dx, headY + dy, 2, 0, Math.PI*2); cx.fill();
+    }
+    cx.shadowBlur = 8;
+    cx.beginPath(); cx.arc(0, headY - 32, 4, 0, Math.PI*2); cx.fill();
+  }
+  cx.restore();
+}
+
+// ── Clothes drawing (inside figure transform) ─────────────────────────────
+function drawClothesOnFigure(cx, state, t) {
+  const cl = selectedClothes;
+  if (cl === 'none') return;
+  cx.save(); cx.shadowBlur = 0;
+
+  if (cl === 'cape') {
+    const wave = state === 'run' ? Math.sin(t * 10) * 6 : Math.sin(t * 1.5) * 2;
+    cx.fillStyle = '#8800ffaa'; cx.strokeStyle = '#aa44ff'; cx.lineWidth = 1.5;
+    cx.shadowColor = '#8800ff'; cx.shadowBlur = 6;
+    cx.beginPath();
+    cx.moveTo(-2, -44);
+    cx.quadraticCurveTo(-20 - wave, -18, -13 + wave * 0.5, 4);
+    cx.lineTo(13 - wave * 0.5, 4);
+    cx.quadraticCurveTo(20 + wave, -18, 2, -44);
+    cx.closePath(); cx.fill(); cx.stroke();
+
+  } else if (cl === 'tshirt') {
+    cx.fillStyle = '#2255bb99'; cx.strokeStyle = '#3366cc'; cx.lineWidth = 1.5;
+    cx.beginPath();
+    cx.moveTo(-10, -42); cx.lineTo(-8, -22); cx.lineTo(8, -22); cx.lineTo(10, -42);
+    cx.closePath(); cx.fill(); cx.stroke();
+    cx.beginPath(); cx.moveTo(-10,-42); cx.lineTo(-16,-33); cx.stroke();
+    cx.beginPath(); cx.moveTo(10,-42);  cx.lineTo(16,-33);  cx.stroke();
+
+  } else if (cl === 'jacket') {
+    cx.fillStyle = '#1a1a3399'; cx.strokeStyle = '#2a2a99'; cx.lineWidth = 1.5;
+    cx.beginPath();
+    cx.moveTo(-13,-44); cx.lineTo(-11,-20); cx.lineTo(11,-20); cx.lineTo(13,-44);
+    cx.closePath(); cx.fill(); cx.stroke();
+    cx.beginPath(); cx.moveTo(-4,-44); cx.lineTo(0,-36); cx.lineTo(4,-44); cx.stroke();
+    cx.fillStyle = '#ffffff44';
+    cx.beginPath(); cx.arc(0,-30,2,0,Math.PI*2); cx.fill();
+
+  } else if (cl === 'suit') {
+    cx.fillStyle = '#0f0f22dd'; cx.strokeStyle = '#1818aa'; cx.lineWidth = 1.5;
+    cx.beginPath();
+    cx.moveTo(-13,-45); cx.lineTo(-11,-18); cx.lineTo(11,-18); cx.lineTo(13,-45);
+    cx.closePath(); cx.fill(); cx.stroke();
+    cx.beginPath(); cx.moveTo(-5,-45); cx.lineTo(0,-37); cx.lineTo(5,-45); cx.stroke();
+    cx.fillStyle = '#bb1111';
+    cx.beginPath();
+    cx.moveTo(-3,-42); cx.lineTo(-3,-27); cx.lineTo(0,-23); cx.lineTo(3,-27); cx.lineTo(3,-42);
+    cx.closePath(); cx.fill();
+    cx.fillStyle = '#ffffff55'; cx.fillRect(-11,-37,5,4);
+  }
+  cx.restore();
 }
 
 // ── Draw stick figure ─────────────────────────────────────────────────────
@@ -581,41 +1010,31 @@ function drawStick(sx, sy, state, t, facing, djSpin, squish) {
   ctx.save();
   ctx.translate(sx, sy);
 
-  // Squish/stretch on land
   const scaleY = state === 'idle' || state === 'run' ? 1 - squish * 0.35 : 1 + squish * 0.1;
   const scaleX = state === 'idle' || state === 'run' ? 1 + squish * 0.25 : 1;
   ctx.scale(scaleX * facing, scaleY);
 
-  // Double jump spin
-  if (djSpin > 0) {
-    ctx.rotate((Math.PI * 2 - djSpin) * facing);
-  }
+  if (djSpin > 0) ctx.rotate((Math.PI * 2 - djSpin) * facing);
 
-  ctx.strokeStyle = '#ffffff';
+  const sk = getSkinStyle();
+  ctx.strokeStyle = sk.color;
   ctx.lineWidth   = 3.2;
   ctx.lineCap     = 'round';
   ctx.lineJoin    = 'round';
+  ctx.shadowColor = sk.glow;
+  ctx.shadowBlur  = 8;
 
-  // Glow
-  ctx.shadowColor  = 'rgba(140,180,255,0.8)';
-  ctx.shadowBlur   = 8;
+  // Cape behind body
+  if (selectedClothes === 'cape') drawClothesOnFigure(ctx, state, t);
 
   if (state === 'run') {
-    const ph = t * 10;
+    const ph  = t * 10;
     const bob = Math.abs(Math.sin(ph)) * 2.5;
-
-    // Head
     circle(ctx, 0, -56 - bob, 8.5);
-
-    // Body
     seg(ctx, 0, -47 - bob, 2, -24);
-
-    // Arms swing opposite to legs
     const aSwing = Math.sin(ph) * 22;
-    seg(ctx, 1, -40 - bob, -12 + aSwing,  -28 - bob);
-    seg(ctx, 1, -40 - bob,  14 - aSwing,  -28 - bob);
-
-    // Legs
+    seg(ctx, 1, -40 - bob, -12 + aSwing, -28 - bob);
+    seg(ctx, 1, -40 - bob,  14 - aSwing, -28 - bob);
     const lSwing = Math.sin(ph) * 16;
     const lKnee  = Math.cos(ph) * 10;
     seg(ctx,  2, -24,  lSwing,        -10 + lKnee);
@@ -626,48 +1045,38 @@ function drawStick(sx, sy, state, t, facing, djSpin, squish) {
   } else if (state === 'jump') {
     circle(ctx, 0, -58, 8.5);
     seg(ctx, 0, -49, 0, -24);
-    // Arms reach up
-    seg(ctx, 0, -40, -18, -52);
-    seg(ctx, 0, -40,  18, -52);
-    // Legs tucked
-    seg(ctx, 0, -24, -10, -12);
-    seg(ctx,-10, -12, -8,   4);
-    seg(ctx, 0, -24,  10, -12);
-    seg(ctx, 10, -12,  8,   4);
+    seg(ctx, 0, -40, -18, -52); seg(ctx, 0, -40, 18, -52);
+    seg(ctx, 0, -24, -10, -12); seg(ctx,-10,-12,-8,4);
+    seg(ctx, 0, -24,  10, -12); seg(ctx, 10,-12, 8,4);
 
   } else if (state === 'djump') {
     circle(ctx, 0, -56, 8.5);
     seg(ctx, 0, -47, 0, -22);
-    // Star pose – arms and legs wide
-    seg(ctx, 0, -38, -22, -50);
-    seg(ctx, 0, -38,  22, -50);
-    seg(ctx, 0, -22, -18,  -6);
-    seg(ctx, 0, -22,  18,  -6);
+    seg(ctx, 0, -38, -22, -50); seg(ctx, 0, -38,  22, -50);
+    seg(ctx, 0, -22, -18,  -6); seg(ctx, 0, -22,  18,  -6);
 
   } else if (state === 'fall') {
     circle(ctx, 0, -54, 8.5);
     seg(ctx, 0, -45, 0, -20);
-    // Arms spread wide
-    seg(ctx, 0, -36, -22, -28);
-    seg(ctx, 0, -36,  22, -28);
-    // Legs down
-    seg(ctx, 0, -20, -10, -4);
-    seg(ctx,-10, -4, -6,  12);
-    seg(ctx, 0, -20,  10, -4);
-    seg(ctx, 10, -4,  6,  12);
+    seg(ctx, 0, -36, -22, -28); seg(ctx, 0, -36,  22, -28);
+    seg(ctx, 0, -20, -10, -4);  seg(ctx,-10,-4,-6,12);
+    seg(ctx, 0, -20,  10, -4);  seg(ctx, 10,-4, 6,12);
 
   } else {
-    // Idle – subtle breathing
     const breathe = Math.sin(t * 1.6) * 1.5;
     circle(ctx, 0, -56 + breathe, 8.5);
     seg(ctx, 0, -47 + breathe, 0, -22);
-    seg(ctx, 0, -37 + breathe, -14, -28);
-    seg(ctx, 0, -37 + breathe,  14, -28);
-    seg(ctx, 0, -22, -8,   0);
-    seg(ctx,-8,   0, -6,  14);
-    seg(ctx, 0, -22,  8,   0);
-    seg(ctx, 8,   0,  6,  14);
+    seg(ctx, 0, -37 + breathe, -14, -28); seg(ctx, 0, -37 + breathe, 14, -28);
+    seg(ctx, 0, -22, -8, 0);  seg(ctx,-8, 0,-6,14);
+    seg(ctx, 0, -22,  8, 0);  seg(ctx, 8, 0, 6,14);
   }
+
+  // Non-cape clothes over body
+  if (selectedClothes !== 'cape') drawClothesOnFigure(ctx, state, t);
+
+  // Hat on top
+  const headY = state === 'jump' ? -58 : state === 'fall' ? -54 : -56;
+  drawHatOnFigure(ctx, headY);
 
   ctx.restore();
 }
@@ -679,19 +1088,38 @@ function seg(ctx, x1, y1, x2, y2) {
   ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
 }
 
+// ── Draw coins ────────────────────────────────────────────────────────────
+function drawCoins() {
+  for (const c of coins) {
+    if (c.collected) continue;
+    const sx = c.x - camX;
+    const sy = c.y - camY + Math.sin(p.animT * 3 + c.phase) * 4;
+    if (sx < -30 || sx > canvas.width + 30) continue;
+
+    ctx.save();
+    ctx.shadowColor = '#ffcc00';
+    ctx.shadowBlur  = 14;
+    ctx.strokeStyle = '#ffaa00';
+    ctx.lineWidth   = 2;
+    ctx.beginPath(); ctx.arc(sx, sy, 11, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle = '#ffcc00';
+    ctx.beginPath(); ctx.arc(sx, sy, 9, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#ffe066';
+    ctx.beginPath(); ctx.arc(sx - 2.5, sy - 2.5, 4, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+}
+
 // ── Draw background ────────────────────────────────────────────────────────
 function drawBg() {
-  const W   = canvas.width, H = canvas.height;
+  const W = canvas.width, H = canvas.height;
   const lvl = getLevelConfig(currentLevel);
 
-  // Sky gradient – changes per difficulty tier
   const sky = ctx.createLinearGradient(0, 0, 0, H);
-  sky.addColorStop(0, lvl.sky1);
-  sky.addColorStop(1, lvl.sky2);
-  ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, W, H);
+  sky.addColorStop(0, lvl.sky1); sky.addColorStop(1, lvl.sky2);
+  ctx.fillStyle = sky; ctx.fillRect(0, 0, W, H);
 
-  // Stars (parallax 0.05)
   for (let i = 0; i < 80; i++) {
     const sx = ((i * 173 - camX * 0.05) % (W + 60) + W + 60) % (W + 60) - 30;
     const sy = (i * 97 + 10) % (H * 0.75);
@@ -701,7 +1129,6 @@ function drawBg() {
   }
   ctx.globalAlpha = 1;
 
-  // Far buildings (parallax 0.15)
   ctx.fillStyle = lvl.buildCol;
   const bOff = (camX * 0.15) % 180;
   for (let i = -1; i < Math.ceil(W / 180) + 1; i++) {
@@ -711,7 +1138,6 @@ function drawBg() {
     ctx.fillRect(bx, H - bh, bw, bh);
   }
 
-  // Mid buildings (parallax 0.3)
   const midCol = lvl.buildCol.replace('#', '');
   const mc = parseInt(midCol, 16);
   const mr = Math.min(255, ((mc>>16)&0xff) + 6);
@@ -724,7 +1150,6 @@ function drawBg() {
     const bh = 40 + Math.abs(Math.sin(i * 2.1)) * 80;
     const bw = 50 + Math.abs(Math.sin(i * 3.1)) * 40;
     ctx.fillRect(bx, H - bh, bw, bh);
-    // Windows (tinted with category color)
     for (let wy = H - bh + 8; wy < H - 6; wy += 16) {
       for (let wx = bx + 6; wx < bx + bw - 6; wx += 12) {
         if (Math.sin(wx * 4.1 + wy * 2.7 + i) > 0.1) {
@@ -736,12 +1161,9 @@ function drawBg() {
     }
   }
 
-  // Level type label on screen (faint watermark)
   ctx.save();
-  ctx.globalAlpha = 0.05;
-  ctx.fillStyle   = lvl.catColor;
-  ctx.font        = `bold ${H * 0.18}px Segoe UI`;
-  ctx.textAlign   = 'center';
+  ctx.globalAlpha = 0.05; ctx.fillStyle = lvl.catColor;
+  ctx.font = `bold ${H * 0.18}px Segoe UI`; ctx.textAlign = 'center';
   ctx.fillText(lvl.type.toUpperCase(), W / 2, H * 0.6);
   ctx.restore();
 }
@@ -754,31 +1176,17 @@ function drawPlatforms() {
     if (sx > canvas.width + 10 || sx + pl.w < -10) continue;
 
     const hue = pl.isGoal ? 50 : pl.hue;
-
-    // Glow under platform
     const grad = ctx.createLinearGradient(sx, sy, sx, sy + pl.h + 24);
     grad.addColorStop(0, `hsla(${hue},80%,60%,${pl.isGoal ? 0.7 : 0.4})`);
     grad.addColorStop(1, `hsla(${hue},80%,60%,0)`);
-    ctx.fillStyle = grad;
-    ctx.fillRect(sx, sy, pl.w, 36);
-
-    // Platform body
+    ctx.fillStyle = grad; ctx.fillRect(sx, sy, pl.w, 36);
     ctx.fillStyle = pl.isGoal ? `hsl(50,60%,14%)` : `hsl(${hue},40%,12%)`;
     ctx.fillRect(sx, sy, pl.w, pl.h);
-
-    // Top edge (glowing line)
-    ctx.shadowColor = `hsl(${hue},100%,65%)`;
-    ctx.shadowBlur  = pl.isGoal ? 18 : 10;
+    ctx.shadowColor = `hsl(${hue},100%,65%)`; ctx.shadowBlur = pl.isGoal ? 18 : 10;
     ctx.fillStyle   = `hsl(${hue},100%,${pl.isGoal ? 75 : 68}%)`;
-    ctx.fillRect(sx, sy, pl.w, pl.isGoal ? 4 : 3);
-    ctx.shadowBlur  = 0;
-
-    // Corner dots
+    ctx.fillRect(sx, sy, pl.w, pl.isGoal ? 4 : 3); ctx.shadowBlur = 0;
     ctx.fillStyle = `hsl(${hue},100%,80%)`;
-    ctx.fillRect(sx, sy, 4, 4);
-    ctx.fillRect(sx + pl.w - 4, sy, 4, 4);
-
-    // Draw goal flag on goal platform
+    ctx.fillRect(sx, sy, 4, 4); ctx.fillRect(sx + pl.w - 4, sy, 4, 4);
     if (pl.isGoal) drawFlag(sx + pl.w / 2, sy);
   }
 }
@@ -787,68 +1195,39 @@ function drawPlatforms() {
 function drawFlag(sx, sy) {
   ctx.save();
   const poleH = 70;
-
-  // Pole glow
-  ctx.shadowColor = '#ffcc00';
-  ctx.shadowBlur  = 14;
-  ctx.strokeStyle = '#ffee88';
-  ctx.lineWidth   = 3;
-  ctx.lineCap     = 'round';
-  ctx.beginPath();
-  ctx.moveTo(sx, sy);
-  ctx.lineTo(sx, sy - poleH);
-  ctx.stroke();
-
-  // Waving flag
+  ctx.shadowColor = '#ffcc00'; ctx.shadowBlur = 14;
+  ctx.strokeStyle = '#ffee88'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx, sy - poleH); ctx.stroke();
   const wave = Math.sin(flagWave) * 6;
-  ctx.fillStyle = '#ffcc00';
-  ctx.shadowColor = '#ffcc00';
-  ctx.shadowBlur  = 10;
+  ctx.fillStyle = '#ffcc00'; ctx.shadowColor = '#ffcc00'; ctx.shadowBlur = 10;
   ctx.beginPath();
   ctx.moveTo(sx, sy - poleH);
   ctx.quadraticCurveTo(sx + 16 + wave, sy - poleH + 12, sx, sy - poleH + 24);
   ctx.fill();
-
-  // "ZIEL" label above flag
-  ctx.shadowBlur = 10;
-  ctx.fillStyle  = '#ffcc00';
-  ctx.font       = 'bold 11px Segoe UI';
-  ctx.textAlign  = 'center';
-  ctx.letterSpacing = '2px';
+  ctx.shadowBlur = 10; ctx.fillStyle = '#ffcc00';
+  ctx.font = 'bold 11px Segoe UI'; ctx.textAlign = 'center';
   ctx.fillText('ZIEL', sx + 10, sy - poleH - 10);
-
-  // Pulsing ring around flag base
   const pulse = 0.5 + Math.sin(flagWave * 2) * 0.3;
-  ctx.globalAlpha = pulse * 0.5;
-  ctx.strokeStyle = '#ffcc00';
-  ctx.lineWidth   = 2;
-  ctx.shadowBlur  = 16;
-  ctx.beginPath();
-  ctx.arc(sx, sy, 18 + Math.sin(flagWave) * 4, 0, Math.PI * 2);
-  ctx.stroke();
-
+  ctx.globalAlpha = pulse * 0.5; ctx.strokeStyle = '#ffcc00'; ctx.lineWidth = 2;
+  ctx.shadowBlur = 16;
+  ctx.beginPath(); ctx.arc(sx, sy, 18 + Math.sin(flagWave) * 4, 0, Math.PI*2); ctx.stroke();
   ctx.restore();
 }
 
-// ── Double jump ring indicator ─────────────────────────────────────────────
+// ── Jump indicator ─────────────────────────────────────────────────────────
 function drawJumpIndicator() {
-  // Show dots above player to indicate remaining jumps
   const sx = p.x + p.w / 2 - camX;
   const sy = p.y - camY - 10;
   for (let i = 0; i < 2; i++) {
     const hasJump = i < p.jumpsLeft;
-    ctx.beginPath();
-    ctx.arc(sx - 8 + i * 16, sy, 4, 0, Math.PI * 2);
+    ctx.beginPath(); ctx.arc(sx - 8 + i * 16, sy, 4, 0, Math.PI * 2);
     if (hasJump) {
       ctx.fillStyle = i === 0 ? '#88aaff' : '#aa66ff';
-      ctx.shadowColor = i === 0 ? '#88aaff' : '#aa66ff';
-      ctx.shadowBlur  = 8;
+      ctx.shadowColor = i === 0 ? '#88aaff' : '#aa66ff'; ctx.shadowBlur = 8;
     } else {
-      ctx.fillStyle = '#222';
-      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#222'; ctx.shadowBlur = 0;
     }
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    ctx.fill(); ctx.shadowBlur = 0;
   }
 }
 
@@ -857,91 +1236,60 @@ function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawBg();
   drawPlatforms();
+  drawCoins();
 
-  // Particles
   for (const pt of particles) {
-    const a  = pt.life / pt.maxL;
-    ctx.save();
-    ctx.globalAlpha = a;
-    ctx.shadowColor = `hsl(${pt.hue},100%,70%)`;
-    ctx.shadowBlur  = 6;
+    const a = pt.life / pt.maxL;
+    ctx.save(); ctx.globalAlpha = a;
+    ctx.shadowColor = `hsl(${pt.hue},100%,70%)`; ctx.shadowBlur = 6;
     ctx.fillStyle   = `hsl(${pt.hue},100%,70%)`;
-    ctx.beginPath();
-    ctx.arc(pt.x - camX, pt.y - camY, pt.r * a, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+    ctx.beginPath(); ctx.arc(pt.x - camX, pt.y - camY, pt.r * a, 0, Math.PI*2);
+    ctx.fill(); ctx.restore();
   }
 
-  // Player
   drawStick(
     p.x + p.w / 2 - camX,
     p.y + p.h     - camY,
     p.state, p.animT, p.facing, p.djumpSpin, p.landSquish
   );
 
-  // Jump indicators
   if (!p.onGround && !goalReached) drawJumpIndicator();
 
   // Death countdown text
   if (deathTimer > 0) {
     const alpha = Math.min(1, deathTimer * 2);
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.textAlign   = 'center';
-    ctx.fillStyle   = '#ff3355';
-    ctx.shadowColor = '#ff3355';
-    ctx.shadowBlur  = 30;
-    ctx.font        = 'bold 52px Segoe UI';
+    ctx.save(); ctx.globalAlpha = alpha; ctx.textAlign = 'center';
+    ctx.fillStyle = '#ff3355'; ctx.shadowColor = '#ff3355'; ctx.shadowBlur = 30;
+    ctx.font = 'bold 52px Segoe UI';
     ctx.fillText('GEFALLEN!', canvas.width / 2, canvas.height * 0.4);
     ctx.restore();
   }
 
   // Win celebration text
   if (goalReached) {
-    const lvl  = getLevelConfig(currentLevel);
-    const prog = 1 - winTimer / 1.5;
+    const lvl   = getLevelConfig(currentLevel);
+    const prog  = 1 - winTimer / 1.5;
     const alpha = Math.min(1, prog * 3);
     const scale = 0.8 + Math.sin(prog * Math.PI) * 0.3;
-    const cy    = canvas.height * 0.38;
-
     ctx.save();
     ctx.globalAlpha = alpha;
-    ctx.translate(canvas.width / 2, cy);
-    ctx.scale(scale, scale);
-    ctx.textAlign = 'center';
-
-    ctx.fillStyle   = lvl.catColor;
-    ctx.shadowColor = lvl.catColor;
-    ctx.shadowBlur  = 30;
-    ctx.font        = 'bold 18px Segoe UI';
-    ctx.letterSpacing = '6px';
-    ctx.fillText('ZIEL ERREICHT!', 0, -30);
-
-    ctx.shadowBlur  = 50;
-    ctx.font        = 'bold 56px Segoe UI';
-    ctx.fillStyle   = '#ffffff';
-    ctx.fillText(lvl.name, 0, 30);
-
-    ctx.shadowBlur  = 0;
-    ctx.font        = '14px Segoe UI';
-    ctx.fillStyle   = lvl.catColor;
+    ctx.translate(canvas.width / 2, canvas.height * 0.38);
+    ctx.scale(scale, scale); ctx.textAlign = 'center';
+    ctx.fillStyle = lvl.catColor; ctx.shadowColor = lvl.catColor; ctx.shadowBlur = 30;
+    ctx.font = 'bold 18px Segoe UI'; ctx.fillText('ZIEL ERREICHT!', 0, -30);
+    ctx.shadowBlur = 50; ctx.font = 'bold 56px Segoe UI';
+    ctx.fillStyle = '#ffffff'; ctx.fillText(lvl.name, 0, 30);
+    ctx.shadowBlur = 0; ctx.font = '14px Segoe UI'; ctx.fillStyle = lvl.catColor;
     const isLast = currentLevel >= TOTAL_LEVELS - 1;
-    const nextMsg = isLast ? 'Alle 100 Level geschafft!' :
-      `Nächstes: ${getLevelConfig(currentLevel + 1).name}`;
-    ctx.fillText(nextMsg, 0, 62);
-
-    // Countdown ring
-    ctx.strokeStyle = lvl.catColor;
-    ctx.lineWidth   = 3;
-    ctx.shadowBlur  = 10;
+    ctx.fillText(isLast ? 'Alle 100 Level geschafft!' :
+      `Nächstes: ${getLevelConfig(currentLevel + 1).name}`, 0, 62);
+    ctx.strokeStyle = lvl.catColor; ctx.lineWidth = 3; ctx.shadowBlur = 10;
     ctx.beginPath();
-    ctx.arc(0, 100, 18, -Math.PI/2, -Math.PI/2 + (1-winTimer/2.5)*Math.PI*2);
+    ctx.arc(0, 100, 18, -Math.PI/2, -Math.PI/2 + (1-winTimer/1.5)*Math.PI*2);
     ctx.stroke();
-
     ctx.restore();
   }
 
-  // HUD
   document.getElementById('dist').textContent = score + 'm';
   document.getElementById('bst').textContent  = Math.max(best, score) + 'm';
 }
