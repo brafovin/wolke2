@@ -3,13 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Spiele</title>
+  <title>Stick Parkour</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
       min-height: 100vh;
-      background: #0d0d2b;
+      background: #0a0a12;
       color: #fff;
       font-family: 'Segoe UI', sans-serif;
       display: flex;
@@ -18,144 +17,59 @@
       justify-content: center;
       padding: 40px 20px;
     }
-
     h1 {
-      font-size: 48px;
-      font-weight: 900;
-      letter-spacing: 4px;
-      background: linear-gradient(135deg, #f90, #f0f, #0ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 8px;
-      text-align: center;
+      font-size: 52px; font-weight: 900; letter-spacing: 8px;
+      color: #fff;
+      text-shadow: 0 0 40px rgba(140,100,255,0.7);
+      margin-bottom: 10px; text-align: center;
     }
-
-    p.sub {
-      color: #667;
-      font-size: 15px;
-      margin-bottom: 48px;
-      text-align: center;
-      letter-spacing: 1px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 24px;
-      width: 100%;
-      max-width: 900px;
-    }
+    p.sub { color: #334; font-size: 14px; letter-spacing: 2px; margin-bottom: 48px; text-align: center; }
 
     a.card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      display: flex; flex-direction: column; align-items: center;
       text-decoration: none;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 20px;
-      padding: 40px 24px;
-      gap: 14px;
-      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      background: rgba(140,100,255,0.07);
+      border: 1px solid rgba(140,100,255,0.35);
+      border-radius: 24px;
+      padding: 50px 60px; gap: 16px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      max-width: 400px; width: 100%;
     }
-
     a.card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+      transform: translateY(-8px);
+      box-shadow: 0 20px 60px rgba(140,100,255,0.3);
+      border-color: #aa77ff;
     }
-
-    a.card.c1 { border-color: rgba(51,170,255,0.3); }
-    a.card.c1:hover { box-shadow: 0 16px 40px rgba(51,170,255,0.2); border-color: #33aaff; }
-
-    a.card.c2 { border-color: rgba(0,255,255,0.3); }
-    a.card.c2:hover { box-shadow: 0 16px 40px rgba(0,255,255,0.2); border-color: #0ff; }
-
-    a.card.c3 { border-color: rgba(255,100,50,0.3); }
-    a.card.c3:hover { box-shadow: 0 16px 40px rgba(255,100,50,0.2); border-color: #f64; }
-
-    a.card.c4 { border-color: rgba(255,204,0,0.3); }
-    a.card.c4:hover { box-shadow: 0 16px 40px rgba(255,204,0,0.2); border-color: #fc0; }
-
-    a.card.c5 { border-color: rgba(100,255,150,0.3); }
-    a.card.c5:hover { box-shadow: 0 16px 40px rgba(100,255,150,0.2); border-color: #4f9; }
-
-    .icon { font-size: 52px; }
-
-    .card-title {
-      font-size: 22px;
-      font-weight: 700;
-      letter-spacing: 2px;
-      color: #fff;
+    .icon { font-size: 64px; }
+    .title { font-size: 28px; font-weight: 900; letter-spacing: 4px; color: #cc99ff; }
+    .desc  { font-size: 14px; color: #445; text-align: center; line-height: 1.7; }
+    .keys  {
+      display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+      margin-top: 8px;
     }
-
-    .card-desc {
-      font-size: 13px;
-      color: #778;
-      text-align: center;
-      line-height: 1.6;
+    .key {
+      padding: 5px 14px; border: 1px solid #334; border-radius: 8px;
+      font-size: 12px; color: #778; letter-spacing: 1px;
     }
-
-    .badge {
-      font-size: 11px;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-weight: 600;
-      letter-spacing: 1px;
-    }
-    .c1 .badge { background: rgba(51,170,255,0.2); color: #33aaff; }
-    .c2 .badge { background: rgba(0,255,255,0.2); color: #0ff; }
-    .c3 .badge { background: rgba(255,100,50,0.2); color: #f64; }
-    .c4 .badge { background: rgba(255,204,0,0.2); color: #fc0; }
-    .c5 .badge { background: rgba(100,255,150,0.2); color: #4f9; }
+    .key.hi { border-color: #aa77ff55; color: #aa77ff; }
   </style>
 </head>
 <body>
-  <h1>SPIELESAMMLUNG</h1>
-  <p class="sub">Wähle ein Spiel aus</p>
+  <h1>STICK PARKOUR</h1>
+  <p class="sub">Strichmenschen Edition</p>
 
-  <div class="grid">
-    <a class="card c1" href="/spiel.html">
-      <div class="icon">🧍</div>
-      <div class="card-title">3D ABENTEUER</div>
-      <div class="card-desc">Steuere eine Figur durch eine 3D-Welt.<br>Vorwärts, zurück, springen und Kamera drehen.</div>
-      <div class="badge">WASD + Maus</div>
-    </a>
-
-    <a class="card c2" href="/neon-ball.html">
-      <div class="icon">🔮</div>
-      <div class="card-title">NEON BALL</div>
-      <div class="card-desc">Rolle einen leuchtenden Ball über schwebende Plattformen und sammle alle Orbs!</div>
-      <div class="badge">3 LEVEL</div>
-    </a>
-
-    <a class="card c3" href="/block-hopper.html">
-      <div class="icon">🟧</div>
-      <div class="card-title">BLOCK HOPPER</div>
-      <div class="card-desc">Spring von Block zu Block! Die Blöcke werden immer kleiner und weiter weg.</div>
-      <div class="badge">ENDLOS</div>
-    </a>
-
-    <a class="card c4" href="/leap.html">
-      <div class="icon">🦘</div>
-      <div class="card-title">LEAP</div>
-      <div class="card-desc">Halte Leertaste gedrückt um Kraft aufzuladen, dann loslassen und zum Block springen!</div>
-      <div class="badge">PRÄZISION</div>
-    </a>
-
-    <a class="card c5" href="/parkour.html">
-      <div class="icon">🏃</div>
-      <div class="card-title">PARKOUR</div>
-      <div class="card-desc">Strichmenschen-Parkour! Springe, slide und mach Wandsprünge durch die Stadt.</div>
-      <div class="badge">STRICHMENSCHEN</div>
-    </a>
-
-    <a class="card c5" href="/stickparkour.html" style="border-color:rgba(150,100,255,0.3)">
-      <div class="icon">🤸</div>
-      <div class="card-title" style="color:#bb88ff">STICK PARKOUR</div>
-      <div class="card-desc">Strichmenschen springt mit Links, Rechts, Sprung & Doppelsprung durch die Stadt!</div>
-      <div class="badge" style="background:rgba(150,100,255,0.2);color:#bb88ff">NEU</div>
-    </a>
-  </div>
+  <a class="card" href="/stickparkour.html">
+    <div class="icon">🤸</div>
+    <div class="title">SPIELEN</div>
+    <div class="desc">
+      Steuere einen Strichmenschen durch eine neon-beleuchtete Stadt.<br>
+      Spring über Lücken, klettere auf Plattformen und nutze den Doppelsprung!
+    </div>
+    <div class="keys">
+      <div class="key">← → Bewegen</div>
+      <div class="key hi">Leertaste Springen</div>
+      <div class="key hi">2× Leertaste Doppelsprung</div>
+    </div>
+  </a>
 </body>
 </html>
