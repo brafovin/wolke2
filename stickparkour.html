@@ -49,12 +49,40 @@
 
     #hud {
       position: fixed; top: 0; left: 0; right: 0;
-      display: flex; justify-content: space-between;
+      display: flex; justify-content: space-between; align-items: flex-start;
       padding: 16px 28px; pointer-events: none;
     }
     .h { }
     .hv { font-size: 30px; font-weight: 900; color: #fff; }
     .hl { font-size: 10px; letter-spacing: 3px; color: #334; text-transform: uppercase; margin-top: 2px; }
+
+    #level-bar {
+      position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      pointer-events: none;
+    }
+    #level-label { font-size: 11px; letter-spacing: 4px; color: #445; text-transform: uppercase; }
+    #level-track {
+      width: 200px; height: 6px; background: #111;
+      border-radius: 4px; overflow: hidden; border: 1px solid #223;
+    }
+    #level-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, #4466ff, #aa44ff);
+      border-radius: 4px;
+      box-shadow: 0 0 8px #6655ff;
+      transition: width 0.1s;
+    }
+    #level-num { font-size: 13px; color: #7788ff; font-weight: 700; letter-spacing: 2px; }
+
+    #goal-arrow {
+      position: fixed; top: 50%; right: 24px; transform: translateY(-50%);
+      display: none; flex-direction: column; align-items: center; gap: 4px;
+      pointer-events: none;
+    }
+    #goal-arrow .arr { font-size: 28px; color: #ffcc00; text-shadow: 0 0 12px #ffcc00; animation: pulse 0.8s infinite alternate; }
+    #goal-arrow .arr-lbl { font-size: 10px; letter-spacing: 2px; color: #ffcc0099; }
+    @keyframes pulse { from { opacity: 0.5; } to { opacity: 1; } }
   </style>
 </head>
 <body>
@@ -63,6 +91,17 @@
 <div id="hud">
   <div class="h"><div class="hv" id="dist">0m</div><div class="hl">Distanz</div></div>
   <div class="h" style="text-align:right"><div class="hv" id="bst">0m</div><div class="hl">Bestleistung</div></div>
+</div>
+
+<div id="level-bar">
+  <div id="level-num">LEVEL 1</div>
+  <div id="level-track"><div id="level-fill"></div></div>
+  <div id="level-label">zum Ziel</div>
+</div>
+
+<div id="goal-arrow">
+  <div class="arr">▶</div>
+  <div class="arr-lbl">ZIEL</div>
 </div>
 
 <div id="overlay">
@@ -90,6 +129,20 @@
   <div class="result" id="result"></div>
   <div class="best"   id="best-line"></div>
   <button id="startBtn">SPIELEN</button>
+</div>
+
+<div id="win-overlay" style="
+  position:fixed;inset:0;display:none;flex-direction:column;
+  align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.88);z-index:25;">
+  <div style="font-size:18px;letter-spacing:6px;color:#ffcc00;text-shadow:0 0 20px #ffcc00">ZIEL ERREICHT!</div>
+  <div id="win-level" style="font-size:72px;font-weight:900;color:#fff;text-shadow:0 0 40px #aa66ff;margin:8px 0;letter-spacing:4px"></div>
+  <div id="win-sub" style="color:#445;font-size:13px;letter-spacing:2px"></div>
+  <button id="nextBtn" style="
+    margin-top:32px;padding:14px 56px;font-size:18px;font-weight:700;letter-spacing:3px;
+    border:2px solid #ffcc0066;border-radius:50px;
+    background:rgba(255,204,0,0.1);color:#ffcc00;cursor:pointer;
+    transition:all 0.2s;font-family:inherit;">WEITER →</button>
 </div>
 
 <script>
@@ -141,52 +194,69 @@ function burst(x, y, count, hue, spread = 100) {
   }
 }
 
+// ── Level config ───────────────────────────────────────────────────────────
+const LEVELS = [
+  { dist: 1400, diff: 0.0,  name: 'LEVEL 1', hue: 210 },
+  { dist: 2200, diff: 0.3,  name: 'LEVEL 2', hue: 270 },
+  { dist: 3200, diff: 0.55, name: 'LEVEL 3', hue: 340 },
+  { dist: 4400, diff: 0.75, name: 'LEVEL 4', hue: 30  },
+  { dist: 6000, diff: 0.95, name: 'LEVEL 5', hue: 160 },
+];
+let currentLevel = 0;
+let goal = null;   // { x, y, w } – goal platform info
+
 // ── Platform colors ────────────────────────────────────────────────────────
 const PLAT_HUES = [210, 270, 340, 160, 30, 190];
 
 // ── Platforms ─────────────────────────────────────────────────────────────
 const platforms = [];
-let genRight = 0;
-let platIdx  = 0;
+let platIdx = 0;
 
-function genPlatform(difficulty) {
-  const last = platforms[platforms.length - 1];
-  const lx   = last ? last.x + last.w : 0;
-  const ly   = last ? last.y          : canvas.height * 0.68;
-
-  const d    = Math.min(1, difficulty);
-  const gap  = 110 + d * 130 + Math.random() * 80;
-  const dy   = (Math.random() - 0.48) * (50 + d * 120);
-  const w    = Math.max(55, 180 - d * 80 - Math.random() * 40);
-  const h    = 18;
-  const nx   = lx + gap;
-  const ny   = Math.max(canvas.height * 0.25, Math.min(canvas.height * 0.82, ly + dy));
-  const hue  = PLAT_HUES[platIdx++ % PLAT_HUES.length];
-
-  platforms.push({ x: nx, y: ny, w, h, hue });
+function genPlatform(difficulty, lastPlat) {
+  const lx = lastPlat.x + lastPlat.w;
+  const ly = lastPlat.y;
+  const d  = Math.min(1, difficulty);
+  const gap = 110 + d * 130 + Math.random() * 80;
+  const dy  = (Math.random() - 0.48) * (50 + d * 120);
+  const w   = Math.max(55, 180 - d * 80 - Math.random() * 40);
+  const nx  = lx + gap;
+  const ny  = Math.max(canvas.height * 0.22, Math.min(canvas.height * 0.82, ly + dy));
+  const hue = PLAT_HUES[platIdx++ % PLAT_HUES.length];
+  return { x: nx, y: ny, w, h: 18, hue };
 }
 
 function initPlatforms() {
   platforms.length = 0;
   platIdx = 0;
-  genRight = 0;
+  goal = null;
 
-  // Starting platform – wide and safe
-  platforms.push({ x: -100, y: canvas.height * 0.68, w: 320, h: 18, hue: 210 });
-  genRight = 220;
+  const lvl  = LEVELS[currentLevel];
+  const diff = lvl.diff;
+  const goalX = lvl.dist;
 
-  for (let i = 0; i < 10; i++) genPlatform(0);
-}
+  // Starting platform
+  let last = { x: -100, y: canvas.height * 0.68, w: 320, h: 18, hue: 210 };
+  platforms.push(last);
 
-function ensurePlatforms(playerX, score) {
-  while (genRight < playerX + canvas.width + 200) {
-    genPlatform(score / 600);
-    genRight = platforms[platforms.length - 1].x + platforms[platforms.length - 1].w;
+  // Generate until we pass the goal distance
+  while (last.x + last.w < goalX - 200) {
+    const pl = genPlatform(diff, last);
+    // Stop before overshooting goal
+    if (pl.x > goalX - 100) break;
+    platforms.push(pl);
+    last = pl;
   }
-  // Cull far-left
-  while (platforms.length > 0 && platforms[0].x + platforms[0].w < playerX - 400) {
-    platforms.shift();
-  }
+
+  // Goal platform – wide, centered near goalX
+  const goalPlat = {
+    x: goalX,
+    y: Math.max(canvas.height * 0.3, Math.min(canvas.height * 0.72, last.y + (Math.random()-0.5)*80)),
+    w: 220, h: 18,
+    hue: 50,   // golden
+    isGoal: true,
+  };
+  platforms.push(goalPlat);
+  goal = goalPlat;
 }
 
 // ── Player ────────────────────────────────────────────────────────────────
@@ -208,9 +278,16 @@ let score    = 0;
 let best     = parseInt(localStorage.getItem('spkBest') || '0');
 let running  = false;
 let maxX     = 0;
+let goalReached = false;
+let flagWave = 0;
 
 // ── Start / restart ────────────────────────────────────────────────────────
 function startGame() {
+  currentLevel = 0;
+  loadLevel();
+}
+
+function loadLevel() {
   initPlatforms();
   p.x = 60; p.y = canvas.height * 0.68 - p.h;
   p.vx = 0; p.vy = 0;
@@ -219,21 +296,60 @@ function startGame() {
   p.djumpSpin = 0; p.coyote = 0; p.animT = 0; p.landSquish = 0;
   camX = 0; camY = 0;
   score = 0; maxX = p.x;
+  goalReached = false;
   particles.length = 0;
   jumpBuf = false;
   running = true;
   document.getElementById('overlay').style.display = 'none';
+  document.getElementById('win-overlay').style.display = 'none';
+  updateLevelHUD();
 }
 
-document.getElementById('startBtn').addEventListener('click', startGame);
+function updateLevelHUD() {
+  const lvl = LEVELS[currentLevel];
+  const goalX = lvl.dist;
+  const progress = Math.min(1, Math.max(0, (p.x - 60) / (goalX - 60)));
+  document.getElementById('level-num').textContent  = lvl.name;
+  document.getElementById('level-fill').style.width = (progress * 100) + '%';
+  const remaining = Math.max(0, Math.floor((goalX - p.x) / 5));
+  document.getElementById('level-label').textContent = remaining > 0 ? `noch ${remaining}m` : 'fast da!';
+
+  // Goal arrow (show when goal is off-screen to the right)
+  const arrow = document.getElementById('goal-arrow');
+  if (goal && goal.x - camX > canvas.width + 20) {
+    arrow.style.display = 'flex';
+  } else {
+    arrow.style.display = 'none';
+  }
+}
+
+document.getElementById('startBtn').addEventListener('click', () => { currentLevel = 0; loadLevel(); });
+
+document.getElementById('nextBtn').addEventListener('click', () => {
+  currentLevel = Math.min(currentLevel + 1, LEVELS.length - 1);
+  loadLevel();
+});
+
+// Win!
+function levelWon() {
+  running = false;
+  goalReached = true;
+  const isLast = currentLevel >= LEVELS.length - 1;
+  document.getElementById('win-level').textContent = LEVELS[currentLevel].name;
+  document.getElementById('win-sub').textContent   = isLast ? 'Alle Level geschafft! Du bist ein Parkour-Meister!' : 'Bereit für das nächste Level?';
+  document.getElementById('nextBtn').textContent   = isLast ? 'NOCHMAL' : 'WEITER →';
+  document.getElementById('win-overlay').style.display = 'flex';
+  if (isLast) document.getElementById('nextBtn').addEventListener('click', () => { currentLevel = 0; loadLevel(); }, { once: true });
+  burst(goal.x + goal.w/2, goal.y, 40, 50, 200);
+}
 
 // ── Game over ──────────────────────────────────────────────────────────────
 function gameOver() {
   running = false;
   if (score > best) { best = score; localStorage.setItem('spkBest', best); }
-  document.getElementById('result').textContent   = score > 5 ? `${score}m weit gekommen!` : 'Gleich gefallen!';
+  document.getElementById('result').textContent    = score > 5 ? `${score}m weit gekommen!` : 'Gleich gefallen!';
   document.getElementById('best-line').textContent = best > 0 ? `Bestleistung: ${best}m` : '';
-  document.getElementById('startBtn').textContent  = score > 5 ? 'NOCHMAL' : 'SPIELEN';
+  document.getElementById('startBtn').textContent  = 'NOCHMAL';
   document.getElementById('overlay').style.display = 'flex';
 }
 
@@ -324,14 +440,20 @@ function update(dt) {
   if (p.x > maxX) { maxX = p.x; }
   score = Math.max(0, Math.floor((maxX - 60) / 5));
 
+  // ── Goal check ────────────────────────────────────────────────────────
+  if (goal && !goalReached) {
+    const flagX = goal.x + goal.w / 2;
+    if (Math.abs(p.x + p.w/2 - flagX) < 40 && Math.abs(p.y + p.h - goal.y) < 30) {
+      levelWon();
+      return;
+    }
+  }
+
   // ── Camera smooth follow ───────────────────────────────────────────────
   const targetX = p.x - canvas.width  * 0.35;
   const targetY = p.y - canvas.height * 0.45;
   camX += (targetX - camX) * Math.min(1, dt * 7);
   camY += (targetY - camY) * Math.min(1, dt * 5);
-
-  // ── Generate ahead ─────────────────────────────────────────────────────
-  ensurePlatforms(p.x, score);
 
   // ── Particles ──────────────────────────────────────────────────────────
   for (let i = particles.length - 1; i >= 0; i--) {
@@ -342,6 +464,12 @@ function update(dt) {
     pt.y  += pt.vy * dt;
     pt.vy += 600 * dt;
   }
+
+  // ── Flag wave ──────────────────────────────────────────────────────────
+  flagWave += dt * 3;
+
+  // ── HUD update ────────────────────────────────────────────────────────
+  updateLevelHUD();
 
   // ── Death ──────────────────────────────────────────────────────────────
   if (p.y > canvas.height + 200) gameOver();
@@ -510,29 +638,81 @@ function drawPlatforms() {
     const sy = pl.y - camY;
     if (sx > canvas.width + 10 || sx + pl.w < -10) continue;
 
+    const hue = pl.isGoal ? 50 : pl.hue;
+
     // Glow under platform
     const grad = ctx.createLinearGradient(sx, sy, sx, sy + pl.h + 24);
-    grad.addColorStop(0, `hsla(${pl.hue},80%,60%,0.4)`);
-    grad.addColorStop(1, `hsla(${pl.hue},80%,60%,0)`);
+    grad.addColorStop(0, `hsla(${hue},80%,60%,${pl.isGoal ? 0.7 : 0.4})`);
+    grad.addColorStop(1, `hsla(${hue},80%,60%,0)`);
     ctx.fillStyle = grad;
-    ctx.fillRect(sx, sy, pl.w, 32);
+    ctx.fillRect(sx, sy, pl.w, 36);
 
     // Platform body
-    ctx.fillStyle = `hsl(${pl.hue},40%,12%)`;
+    ctx.fillStyle = pl.isGoal ? `hsl(50,60%,14%)` : `hsl(${hue},40%,12%)`;
     ctx.fillRect(sx, sy, pl.w, pl.h);
 
     // Top edge (glowing line)
-    ctx.shadowColor = `hsl(${pl.hue},100%,65%)`;
-    ctx.shadowBlur  = 10;
-    ctx.fillStyle   = `hsl(${pl.hue},100%,68%)`;
-    ctx.fillRect(sx, sy, pl.w, 3);
+    ctx.shadowColor = `hsl(${hue},100%,65%)`;
+    ctx.shadowBlur  = pl.isGoal ? 18 : 10;
+    ctx.fillStyle   = `hsl(${hue},100%,${pl.isGoal ? 75 : 68}%)`;
+    ctx.fillRect(sx, sy, pl.w, pl.isGoal ? 4 : 3);
     ctx.shadowBlur  = 0;
 
-    // Small corner dots
-    ctx.fillStyle = `hsl(${pl.hue},100%,80%)`;
+    // Corner dots
+    ctx.fillStyle = `hsl(${hue},100%,80%)`;
     ctx.fillRect(sx, sy, 4, 4);
     ctx.fillRect(sx + pl.w - 4, sy, 4, 4);
+
+    // Draw goal flag on goal platform
+    if (pl.isGoal) drawFlag(sx + pl.w / 2, sy);
   }
+}
+
+// ── Draw flag ─────────────────────────────────────────────────────────────
+function drawFlag(sx, sy) {
+  ctx.save();
+  const poleH = 70;
+
+  // Pole glow
+  ctx.shadowColor = '#ffcc00';
+  ctx.shadowBlur  = 14;
+  ctx.strokeStyle = '#ffee88';
+  ctx.lineWidth   = 3;
+  ctx.lineCap     = 'round';
+  ctx.beginPath();
+  ctx.moveTo(sx, sy);
+  ctx.lineTo(sx, sy - poleH);
+  ctx.stroke();
+
+  // Waving flag
+  const wave = Math.sin(flagWave) * 6;
+  ctx.fillStyle = '#ffcc00';
+  ctx.shadowColor = '#ffcc00';
+  ctx.shadowBlur  = 10;
+  ctx.beginPath();
+  ctx.moveTo(sx, sy - poleH);
+  ctx.quadraticCurveTo(sx + 16 + wave, sy - poleH + 12, sx, sy - poleH + 24);
+  ctx.fill();
+
+  // "ZIEL" label above flag
+  ctx.shadowBlur = 10;
+  ctx.fillStyle  = '#ffcc00';
+  ctx.font       = 'bold 11px Segoe UI';
+  ctx.textAlign  = 'center';
+  ctx.letterSpacing = '2px';
+  ctx.fillText('ZIEL', sx + 10, sy - poleH - 10);
+
+  // Pulsing ring around flag base
+  const pulse = 0.5 + Math.sin(flagWave * 2) * 0.3;
+  ctx.globalAlpha = pulse * 0.5;
+  ctx.strokeStyle = '#ffcc00';
+  ctx.lineWidth   = 2;
+  ctx.shadowBlur  = 16;
+  ctx.beginPath();
+  ctx.arc(sx, sy, 18 + Math.sin(flagWave) * 4, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.restore();
 }
 
 // ── Double jump ring indicator ─────────────────────────────────────────────
@@ -589,7 +769,7 @@ function draw() {
 
   // HUD
   document.getElementById('dist').textContent = score + 'm';
-  document.getElementById('bst').textContent  = best  + 'm';
+  document.getElementById('bst').textContent  = Math.max(best, score) + 'm';
 }
 
 // ── Loop ──────────────────────────────────────────────────────────────────
